@@ -1,0 +1,15 @@
+{
+    "langs": [
+        "eng",
+        "hin",
+        "tam"
+    ],
+    "draw": true,
+    "detector": {
+        "name": "tesseract"
+    },
+    "recognizer": {
+        "name": "tesseract",
+        "min_confidence": 0
+    }
+}
