@@ -39,7 +39,6 @@ def run_pascal_voc_metrics(gt_folder_pascalvoc, pred_folder_pascalvoc):
     gt = os.path.abspath(gt_folder_pascalvoc)
     det = os.path.abspath(pred_folder_pascalvoc)
     os.system('%s -gt %s -det %s' % (PASVAL_VOC_EVAL_SCRIPT, gt, det))
-    # TODO: Calc F-Score
     return
 
 if __name__ == '__main__':

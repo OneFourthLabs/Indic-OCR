@@ -1,3 +1,0 @@
-[submodule "libs/object_detection_metrics"]
-	path = libs/object_detection_metrics
-	url = git://github.com/rafaelpadilla/Object-Detection-Metrics.git
