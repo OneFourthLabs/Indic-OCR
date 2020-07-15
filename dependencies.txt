@@ -2,3 +2,5 @@ Pillow
 pytesseract
 langdetect
 tqdm
+numpy
+opencv-python
