@@ -6,14 +6,15 @@ from indic_ocr.recognition.tesseract import TesseractRecognizer
 from indic_ocr.utils.lang import get_lang_from_text
 
 class TessarectOCR(End2EndOCR_Base):
-    def __init__(self, langs, min_confidence=0.0):
+    def __init__(self, langs, min_confidence=0.0, psm=3):
         self.langs = langs
         self.min_confidence = min_confidence
         self.lang_str = TesseractRecognizer.langs_to_str(langs)
         print('Tessarect setup for languages:', self.lang_str)
+        self.config = '--psm %d' % (psm)
     
     def run(self, img):
-        data = image_to_data(img, lang=self.lang_str, output_type='dict')
+        data = image_to_data(img, lang=self.lang_str, config=self.config, output_type='dict')
         bboxes = []
         for i in range(len(data['text'])):
             text, conf = data['text'][i].strip(), float(data['conf'][i]) / 100.0

@@ -16,7 +16,9 @@ class OCR:
         
         if self.detector_name == self.recognizer_name == 'tesseract':
             from indic_ocr.end2end.tesseract import TessarectOCR
-            self.extractor = TessarectOCR(self.langs, config['recognizer'].get('min_confidence', 0.1))
+            self.extractor = TessarectOCR(self.langs,
+                                          config['recognizer'].get('min_confidence', 0.1),
+                                          psm=config['detector'].get('psm', 3))
         else:
             print('No support for', self.detector_name)
             raise NotImplementedError

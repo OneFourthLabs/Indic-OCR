@@ -16,16 +16,17 @@ class TesseractRecognizer(RecognizerBase):
             lang_str.append(lang)
         return '+'.join(lang_str)
     
-    def __init__(self, langs):
+    def __init__(self, langs, psm=8):
         self.langs = langs
         self.lang_str = TesseractRecognizer.langs_to_str(langs)
         print('Tessarect setup for languages:', self.lang_str)
+        self.config = '--psm %d' % (psm)
     
     def recognize(self, img):
         if type(img) == np.ndarray:
             img = np2pil(img)
         # TODO: https://github.com/madmaze/pytesseract/issues/286
-        final_text = image_to_string(img, lang=self.lang_str).strip()
+        final_text = image_to_string(img, lang=self.lang_str, config=self.config).strip()
         if not final_text:
             return {}
         return {
@@ -36,7 +37,7 @@ class TesseractRecognizer(RecognizerBase):
     def recognize_with_confidence(self, img):
         if type(img) == np.ndarray:
             img = np2pil(img)
-        data = image_to_data(img, lang=self.lang_str, output_type='dict')
+        data = image_to_data(img, lang=self.lang_str, config=self.config, output_type='dict')
         texts = []
         avg_confidence = 0
         total_bboxes = 0

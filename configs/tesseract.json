@@ -6,10 +6,12 @@
     ],
     "draw": true,
     "detector": {
-        "name": "tesseract"
+        "name": "tesseract",
+        "psm": 1
     },
     "recognizer": {
         "name": "tesseract",
+        "psm": 7,
         "min_confidence": 0
     }
 }

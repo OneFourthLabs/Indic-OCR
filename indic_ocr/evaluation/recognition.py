@@ -16,7 +16,7 @@ class RecognizerEval:
         self.recognizer_name = config['recognizer']['name']
         if self.recognizer_name == 'tesseract':
             from indic_ocr.recognition.tesseract import TesseractRecognizer
-            self.recognizer = TesseractRecognizer(self.langs)
+            self.recognizer = TesseractRecognizer(self.langs, psm=config['recognizer'].get('psm', 7))
         else:
             print('No support for', self.recognizer_name)
             raise NotImplementedError
