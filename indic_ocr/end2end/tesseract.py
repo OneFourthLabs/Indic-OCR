@@ -1,22 +1,16 @@
 from pytesseract import image_to_string, image_to_data, image_to_osd
 from PIL import Image, ImageDraw
 import numpy as np
-from indic_ocr.utils.lang import ISO639_v1_TO_v2, get_lang_from_text
 from indic_ocr.end2end import End2EndOCR_Base
+from indic_ocr.recognition.tesseract import TesseractRecognizer
+from indic_ocr.utils.lang import get_lang_from_text
 
 class TessarectOCR(End2EndOCR_Base):
     def __init__(self, langs, min_confidence=0.0):
         self.langs = langs
         self.min_confidence = min_confidence
-        self.lang_str = []
-        # Convert to 3-letter lang codes
-        for lang in self.langs:
-            if lang in ISO639_v1_TO_v2:
-                lang = ISO639_v1_TO_v2[lang]
-            self.lang_str.append(lang)
-        
+        self.lang_str = TesseractRecognizer.langs_to_str(langs)
         print('Tessarect setup for languages:', self.lang_str)
-        self.lang_str = '+'.join(self.lang_str)
     
     def run(self, img):
         data = image_to_data(img, lang=self.lang_str, output_type='dict')

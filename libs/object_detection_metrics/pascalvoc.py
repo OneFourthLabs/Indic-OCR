@@ -356,7 +356,7 @@ for metricsPerClass in detections:
         ap_str = "{0:.2f}%".format(ap * 100)
         f_score = 2 * precision[-1] * recall[-1] / (precision[-1]+recall[-1])
         fs_str = "{0:.4f}".format(f_score)
-        print('AP: %s, FS: %s (Class: %s)' % (ap_str, fs_str, cl))
+        print('AP: %s, FS: %s, P: %.2f, R: %.2f (Class: %s)' % (ap_str, fs_str, precision[-1], recall[-1], cl))
         f.write('\n\nClass: %s' % cl)
         f.write('\nAP: %s' % ap_str)
         f.write('\nFS: %s' % fs_str)

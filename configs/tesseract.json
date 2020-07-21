@@ -1,8 +1,8 @@
 {
     "langs": [
-        "eng",
-        "hin",
-        "tam"
+        "en",
+        "hi",
+        "ta"
     ],
     "draw": true,
     "detector": {

@@ -4,3 +4,5 @@ langdetect
 tqdm
 numpy
 opencv-python
+imageio
+edit_distance
