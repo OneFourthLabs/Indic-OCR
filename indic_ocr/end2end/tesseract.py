@@ -38,8 +38,7 @@ class TessarectOCR(End2EndOCR_Base):
         return bboxes
     
     def load_img(self, img_path):
-        # pytesseract assumes RGB format
-        return Image.open(img_path)
+        return Image.open(img_path).convert('L')
 
     def draw_bboxes(self, img, bboxes, out_img_file):
         # return super().draw_bboxes(np.array(img, dtype=np.uint8), bboxes, out_img_file)

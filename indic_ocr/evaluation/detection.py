@@ -10,10 +10,10 @@ def json_to_pascalvoc(json_folder, gt_mode=False):
     output_folder = os.path.join(json_folder, 'pascal_voc')
     os.makedirs(output_folder, exist_ok=True)
     
-    tqdm_str = 'Processing ' + ('groundtruth' if gt_mode else 'detection ') + ' files'
+    tqdm_str = 'Processing ' + ('groundtruth' if gt_mode else ' detection ') + ' files'
     for json_file in tqdm(json_files, desc=tqdm_str, unit=' images'):
         with open(json_file, encoding='utf-8') as f:
-            bboxes = json.load(f)
+            bboxes = json.load(f)['data']
         
         payload_lines = []
         bboxes = [bbox for bbox in bboxes if bbox['type'] == 'text']

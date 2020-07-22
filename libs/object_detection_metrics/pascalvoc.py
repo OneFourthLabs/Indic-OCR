@@ -16,6 +16,7 @@ import os
 import shutil
 # from argparse import RawTextHelpFormatter
 import sys
+from tqdm import tqdm
 
 import _init_paths
 from BoundingBox import BoundingBox
@@ -112,7 +113,8 @@ def getBoundingBoxes(directory,
     # Class_id represents the class of the bounding box
     # x, y represents the most top-left coordinates of the bounding box
     # x2, y2 represents the most bottom-right coordinates of the bounding box
-    for f in files:
+    tqdm_str = 'Processing ' + ('groundtruth' if isGT else ' detection ') + ' files'
+    for f in tqdm(files, desc=tqdm_str, unit='files'):
         nameOfImage = f.replace(".txt", "")
         fh1 = open(f, "r")
         for line in fh1:

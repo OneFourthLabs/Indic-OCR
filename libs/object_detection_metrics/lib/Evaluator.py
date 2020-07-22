@@ -14,6 +14,7 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 from BoundingBox import *
 from BoundingBoxes import *
@@ -57,7 +58,7 @@ class Evaluator:
         # Get all classes
         classes = []
         # Loop through all bounding boxes and separate them into GTs and detections
-        for bb in boundingboxes.getBoundingBoxes():
+        for bb in tqdm(boundingboxes.getBoundingBoxes(), desc='Processing bboxes', unit=' bboxes'):
             # [imageName, class, confidence, (bb coordinates XYX2Y2)]
             if bb.getBBType() == BBType.GroundTruth:
                 groundTruths.append([
@@ -96,7 +97,7 @@ class Evaluator:
                 det[key] = np.zeros(val)
             # print("Evaluating class: %s (%d detections)" % (str(c), len(dects)))
             # Loop through detections
-            for d in range(len(dects)):
+            for d in tqdm(range(len(dects)), desc='Evaluating detections of class ' + str(c)):
                 # print('dect %s => %s' % (dects[d][0], dects[d][3],))
                 # Find ground truth image
                 gt = [gt for gt in gts if gt[0] == dects[d][0]]

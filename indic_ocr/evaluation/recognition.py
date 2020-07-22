@@ -4,7 +4,7 @@ from glob import glob
 from tqdm import tqdm
 import os
 from edit_distance import SequenceMatcher
-from indic_ocr.utils.image import crop_image_using_polygon, get_all_images
+from indic_ocr.utils.image import crop_image_using_quadrilateral, get_all_images
 from collections import Counter
 
 class RecognizerEval:
@@ -32,12 +32,12 @@ class RecognizerEval:
             print('ERROR: No GT file for:', img_path)
             return []
         with open(gt_path, encoding='utf-8') as f:
-            bboxes = json.load(f)
+            bboxes = json.load(f)['data']
         
         bboxes = [bbox for bbox in bboxes if bbox['type'] == 'text']
         outputs = []
         for bbox in bboxes:            
-            img_crop = crop_image_using_polygon(img, bbox['points'])
+            img_crop = crop_image_using_quadrilateral(img, bbox['points'])
             # cv2.imshow(bbox['text'], img_crop)
             # cv2.waitKey(0); cv2.destroyAllWindows()
             result = self.recognizer.recognize(img_crop)

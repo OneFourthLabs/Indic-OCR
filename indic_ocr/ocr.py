@@ -33,8 +33,9 @@ class OCR:
             img = self.extractor.load_img(img_path)
             bboxes = self.extractor.run(img)
             out_file = os.path.join(output_folder, os.path.splitext(os.path.basename(img_path))[0])
+            gt = {'data': bboxes} # Add more metadata
             with open(out_file+'.json', 'w', encoding='utf=8') as f:
-                json.dump(bboxes, f, ensure_ascii=False, indent=4)
+                json.dump(gt, f, ensure_ascii=False, indent=4)
             if self.draw:
                 img = self.extractor.draw_bboxes(img, bboxes, out_file+'.jpg')
         
