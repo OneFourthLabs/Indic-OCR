@@ -4,22 +4,16 @@ from glob import glob
 from tqdm import tqdm
 import os
 from edit_distance import SequenceMatcher
-from indic_ocr.utils.image import crop_image_using_quadrilateral, get_all_images
 from collections import Counter
+from indic_ocr.utils.image import crop_image_using_quadrilateral, get_all_images
+from indic_ocr.recognition import load_recognizer
 
 class RecognizerEval:
     def __init__(self, config_json):
         with open(config_json, encoding='utf-8') as f:
             config = json.load(f)
         
-        self.langs = config['langs']
-        self.recognizer_name = config['recognizer']['name']
-        if self.recognizer_name == 'tesseract':
-            from indic_ocr.recognition.tesseract import TesseractRecognizer
-            self.recognizer = TesseractRecognizer(self.langs, psm=config['recognizer'].get('psm', 7))
-        else:
-            print('No support for', self.recognizer_name)
-            raise NotImplementedError
+        self.recognizer = load_recognizer(config['recognizer'], config['langs'])
         
     
     def recognize_image(self, img_path):

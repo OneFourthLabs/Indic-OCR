@@ -6,8 +6,7 @@
     ],
     "draw": true,
     "detector": {
-        "name": "tesseract",
-        "psm": 3
+        "name": "craft"
     },
     "recognizer": {
         "name": "tesseract",

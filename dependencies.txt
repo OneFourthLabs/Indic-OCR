@@ -1,8 +1,15 @@
-Pillow
-pytesseract
 langdetect
 tqdm
-numpy
+edit_distance
+
+# Image processing libs
+Pillow
 opencv-python
 imageio
-edit_distance
+numpy
+
+# OCR libs
+pytesseract
+
+# Detection libs
+craft-text-detector

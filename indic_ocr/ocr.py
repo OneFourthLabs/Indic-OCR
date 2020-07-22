@@ -9,19 +9,24 @@ class OCR:
         with open(config_json, encoding='utf-8') as f:
             config = json.load(f)
         
-        self.langs = config['langs']
         self.draw = config['draw'] if 'draw' in config else False
         self.detector_name = config['detector']['name']
         self.recognizer_name = config['recognizer']['name']
         
         if self.detector_name == self.recognizer_name == 'tesseract':
             from indic_ocr.end2end.tesseract import TessarectOCR
-            self.extractor = TessarectOCR(self.langs,
+            self.extractor = TessarectOCR(config['langs'],
                                           config['recognizer'].get('min_confidence', 0.1),
                                           psm=config['detector'].get('psm', 3))
-        else:
-            print('No support for', self.detector_name)
-            raise NotImplementedError
+        
+        from indic_ocr.detection import load_detector
+        detector = load_detector(config['detector'])
+        
+        from indic_ocr.recognition import load_recognizer
+        recognizer = load_recognizer(config['recognizer'], config['langs'])
+        
+        from indic_ocr.end2end.detect_recog_joiner import DetectRecogJoiner
+        self.extractor = DetectRecogJoiner(detector, recognizer)
 
     def process(self, input_folder, output_folder=None):
         if not output_folder:
