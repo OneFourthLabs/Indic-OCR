@@ -28,7 +28,7 @@ class Detector_Base(ABC):
 def load_detector(detector_cfg):
     if detector_cfg['name'] == 'craft':
         from indic_ocr.detection.craft import CRAFT_Detector
-        return CRAFT_Detector()
+        return CRAFT_Detector(detector_cfg.get('params', {}))
     else:
         print('No support for recognizer:', self.recognizer_name)
         raise NotImplementedError

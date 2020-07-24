@@ -16,14 +16,17 @@ class OCR:
         if self.detector_name == self.recognizer_name == 'tesseract':
             from indic_ocr.end2end.tesseract import TessarectOCR
             self.extractor = TessarectOCR(config['langs'],
-                                          config['recognizer'].get('min_confidence', 0.1),
+                                          config['recognizer']['params'].get('min_confidence', 0.1),
                                           psm=config['detector'].get('psm', 3))
         
         from indic_ocr.detection import load_detector
         detector = load_detector(config['detector'])
         
-        from indic_ocr.recognition import load_recognizer
-        recognizer = load_recognizer(config['recognizer'], config['langs'])
+        detect_only = config['recognizer']['disabled'] if 'disabled' in config['recognizer'] else False
+        recognizer = None
+        if not detect_only:
+            from indic_ocr.recognition import load_recognizer
+            recognizer = load_recognizer(config['recognizer'], config['langs'])
         
         from indic_ocr.end2end.detect_recog_joiner import DetectRecogJoiner
         self.extractor = DetectRecogJoiner(detector, recognizer)

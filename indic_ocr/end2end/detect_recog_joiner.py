@@ -2,8 +2,10 @@ from indic_ocr.end2end import End2EndOCR_Base
 from indic_ocr.utils.image import crop_image_using_quadrilateral
 
 class DetectRecogJoiner(End2EndOCR_Base):
-    def __init__(self, detector, recognizer):
+    def __init__(self, detector, recognizer=None):
         self.detector = detector
+        if not recognizer:
+            self.run = self.detect
         self.recognizer = recognizer
     
     def detect(self, img):

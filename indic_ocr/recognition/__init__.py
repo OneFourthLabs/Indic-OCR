@@ -13,7 +13,7 @@ class RecognizerBase(ABC):
 def load_recognizer(recognizer_cfg, langs=['en']):
     if recognizer_cfg['name'] == 'tesseract':
         from indic_ocr.recognition.tesseract import TesseractRecognizer
-        return TesseractRecognizer(langs, psm=recognizer_cfg.get('psm', 7))
+        return TesseractRecognizer(langs, **recognizer_cfg.get('params', {}))
     else:
         print('No support for recognizer:', self.recognizer_name)
         raise NotImplementedError

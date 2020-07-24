@@ -6,11 +6,21 @@
     ],
     "draw": true,
     "detector": {
-        "name": "craft"
+        "name": "craft",
+        "params": {
+            "text_threshold": 0.7,
+            "link_threshold": 0.4,
+            "low_text": 0.4,
+            "cuda": false,
+            "long_size": 1280
+        }
     },
     "recognizer": {
         "name": "tesseract",
-        "psm": 7,
-        "min_confidence": 0
+        "disabled": true,
+        "params": {
+            "psm": 7,
+            "min_confidence": 0
+        }
     }
 }

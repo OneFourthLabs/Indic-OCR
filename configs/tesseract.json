@@ -11,7 +11,9 @@
     },
     "recognizer": {
         "name": "tesseract",
-        "psm": 7,
-        "min_confidence": 0
+        "params": {
+            "psm": 7,
+            "min_confidence": 0
+        }
     }
 }

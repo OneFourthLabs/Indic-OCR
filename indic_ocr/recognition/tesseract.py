@@ -16,11 +16,12 @@ class TesseractRecognizer(RecognizerBase):
             lang_str.append(lang)
         return '+'.join(lang_str)
     
-    def __init__(self, langs, psm=8):
+    def __init__(self, langs, psm=8, min_confidence=0):
         self.langs = langs
         self.lang_str = TesseractRecognizer.langs_to_str(langs)
         print('Tessarect setup for languages:', self.lang_str)
         self.config = '--psm %d' % (psm)
+        self.min_confidence = min_confidence
     
     def recognize(self, img):
         if type(img) == np.ndarray:
@@ -44,7 +45,7 @@ class TesseractRecognizer(RecognizerBase):
         # assert len(data['text']) == 1 # Should contain only 1 bbox
         for i in range(len(data['text'])):
             text, conf = data['text'][i].strip(), float(data['conf'][i]) / 100.0
-            if conf < 0 or not text:
+            if conf < self.min_confidence or not text:
                 continue
             total_bboxes += 1
             avg_confidence += conf
