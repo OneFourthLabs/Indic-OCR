@@ -8,6 +8,9 @@ class DetectRecogJoiner(End2EndOCR_Base):
             self.run = self.detect
         self.recognizer = recognizer
     
+    def load_img(self, img_path):
+        return self.detector.load_img(img_path)
+    
     def detect(self, img):
         return self.detector.detect(img)
     

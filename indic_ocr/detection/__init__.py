@@ -29,6 +29,9 @@ def load_detector(detector_cfg):
     if detector_cfg['name'] == 'craft':
         from indic_ocr.detection.craft import CRAFT_Detector
         return CRAFT_Detector(detector_cfg.get('params', {}))
+    elif detector_cfg['name'] == 'east':
+        from indic_ocr.detection.east import EAST_Detector
+        return EAST_Detector(**detector_cfg.get('params', {}))
     else:
         print('No support for recognizer:', self.recognizer_name)
         raise NotImplementedError

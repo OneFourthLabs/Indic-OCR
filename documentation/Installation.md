@@ -13,4 +13,11 @@ Install the dependencies as required.
 
 ### Configuring CRAFT
 
-It's installed during `pip install` itself. To run on GPU, install CUDA & CuDNN with corresponding PyTorch.
+- `pip install craft-text-detector`
+- To run on GPU, install CUDA & CuDNN with corresponding PyTorch.
+- Sample config: [`craft+tesseract.json`](/configs/craft+tesseract.json)
+
+### Configuring EAST Detector
+
+- Uses OpenCV's DNN Module
+- Sample config: [`east+tesseract.json`](/configs/east+tesseract.json)

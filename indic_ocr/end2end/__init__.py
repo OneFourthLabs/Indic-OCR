@@ -4,7 +4,7 @@ import imageio
 import cv2
 from indic_ocr.detection import Detector_Base
 
-class End2EndOCR_Base(Detector_Base, ABC):
+class End2EndOCR_Base(ABC):
     @abstractmethod
     def __init__(self, langs):
         pass
@@ -12,6 +12,10 @@ class End2EndOCR_Base(Detector_Base, ABC):
     @abstractmethod
     def run(self, img):
         return []
+    
+    @abstractmethod
+    def load_img(self, img_path):
+        pass
 
     def draw_bboxes(self, img, bboxes, out_img_file):
         rect_color = (255,0,0)

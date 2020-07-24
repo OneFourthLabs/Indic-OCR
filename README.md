@@ -5,7 +5,7 @@
 - Python 3.7+
 - `git clone <repo>` and `cd <repo>`
 - `pip install -r dependencies.txt`
-- Check [`Installation documentation`](/documentation/Installation.md) to install specific OCR dependencies
+- Check [`Installation documentation`](/documentation/Installation.md) to install OCR dependencies/models
 
 ## Running OCR
 
