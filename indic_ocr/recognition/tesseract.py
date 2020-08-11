@@ -1,7 +1,6 @@
 from pytesseract import image_to_string, image_to_data, image_to_osd
 import numpy as np
 from indic_ocr.utils.lang import ISO639_v1_TO_v2, get_lang_from_text
-from indic_ocr.utils.image import np2pil
 from indic_ocr.recognition import RecognizerBase
 
 class TesseractRecognizer(RecognizerBase):
@@ -16,7 +15,10 @@ class TesseractRecognizer(RecognizerBase):
             lang_str.append(lang)
         return '+'.join(lang_str)
     
-    def __init__(self, langs, psm=8, min_confidence=0):
+    def __init__(self, langs, psm=13, min_confidence=0):
+        '''
+        For psm, refer: https://github.com/tesseract-ocr/tesseract/blob/master/doc/tesseract.1.asc#options
+        '''
         self.langs = langs
         self.lang_str = TesseractRecognizer.langs_to_str(langs)
         print('Tessarect setup for languages:', self.lang_str)
@@ -24,8 +26,6 @@ class TesseractRecognizer(RecognizerBase):
         self.min_confidence = min_confidence
     
     def recognize(self, img):
-        if type(img) == np.ndarray:
-            img = np2pil(img)
         # TODO: https://github.com/madmaze/pytesseract/issues/286
         final_text = image_to_string(img, lang=self.lang_str, config=self.config).strip()
         if not final_text:
@@ -36,8 +36,6 @@ class TesseractRecognizer(RecognizerBase):
         }
     
     def recognize_with_confidence(self, img):
-        if type(img) == np.ndarray:
-            img = np2pil(img)
         data = image_to_data(img, lang=self.lang_str, config=self.config, output_type='dict')
         texts = []
         avg_confidence = 0

@@ -10,15 +10,13 @@ class OCR:
             config = json.load(f)
         
         self.draw = config['draw'] if 'draw' in config else False
-        self.detector_name = config['detector']['name']
-        self.recognizer_name = config['recognizer']['name']
         
-        if self.detector_name == self.recognizer_name == 'tesseract':
-            from indic_ocr.end2end.tesseract import TessarectOCR
-            self.extractor = TessarectOCR(config['langs'],
-                                          config['recognizer']['params'].get('min_confidence', 0.1),
-                                          psm=config['detector'].get('psm', 3))
-        
+        from indic_ocr.end2end import load_extractor
+        self.extractor = load_extractor(config)
+        if not self.extractor:
+            self.load_models(config)
+
+    def load_models(self, config):
         from indic_ocr.detection import load_detector
         detector = load_detector(config['detector'])
         
@@ -30,7 +28,8 @@ class OCR:
         
         from indic_ocr.end2end.detect_recog_joiner import DetectRecogJoiner
         self.extractor = DetectRecogJoiner(detector, recognizer)
-
+        return
+    
     def process(self, input_folder, output_folder=None):
         if not output_folder:
             output_folder = os.path.join(input_folder, 'ocr_output')
@@ -41,8 +40,12 @@ class OCR:
             img = self.extractor.load_img(img_path)
             bboxes = self.extractor.run(img)
             out_file = os.path.join(output_folder, os.path.splitext(os.path.basename(img_path))[0])
-            gt = {'data': bboxes} # Add more metadata
-            with open(out_file+'.json', 'w', encoding='utf=8') as f:
+            gt = {
+                'data': bboxes,
+                'height': img.shape[0],
+                'width': img.shape[1],
+            } # Add more metadata
+            with open(out_file+'.json', 'w', encoding='utf-8') as f:
                 json.dump(gt, f, ensure_ascii=False, indent=4)
             if self.draw:
                 img = self.extractor.draw_bboxes(img, bboxes, out_file+'.jpg')

@@ -1,0 +1,22 @@
+{
+    "langs": [
+        "en",
+        "hi"
+    ],
+    "draw": true,
+    "model_dir": "models/EasyOCR",
+    "gpu": true,
+    "detector": {
+        "name": "easy_ocr",
+        "params": {
+            "text_threshold": 0.7,
+            "link_threshold": 0.7,
+            "low_text": 0.4,
+            "canvas_size": 2560,
+            "mag_ratio": 1
+        }
+    },
+    "recognizer": {
+        "name": "easy_ocr"
+    }
+}

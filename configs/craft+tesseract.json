@@ -9,9 +9,9 @@
         "name": "craft",
         "params": {
             "text_threshold": 0.7,
-            "link_threshold": 0.4,
+            "link_threshold": 0.7,
             "low_text": 0.4,
-            "cuda": false,
+            "cuda": true,
             "long_size": 1280
         }
     },
@@ -19,7 +19,7 @@
         "name": "tesseract",
         "disabled": false,
         "params": {
-            "psm": 7,
+            "psm": 13,
             "min_confidence": 0
         }
     }

@@ -16,7 +16,7 @@ class EAST_Detector(Detector_Base):
             model_path = 'models/east/frozen_east_text_detection.pb'
             if not os.path.isfile(model_path):
                 print('Downloading EAST OpenCV checkpoint to:', model_path)
-                os.makedirs('models/east/', exist_ok=True)
+                os.makedirs(os.path.dirname(model_path), exist_ok=True)
                 east_pb_url = 'https://bitbucket.org/tomhoag/opencv-text-detection/raw/master/opencv_text_detection/frozen_east_text_detection.pb'
                 import urllib.request
                 urllib.request.urlretrieve(east_pb_url, model_path)

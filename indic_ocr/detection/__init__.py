@@ -33,5 +33,5 @@ def load_detector(detector_cfg):
         from indic_ocr.detection.east import EAST_Detector
         return EAST_Detector(**detector_cfg.get('params', {}))
     else:
-        print('No support for recognizer:', self.recognizer_name)
+        print('No support for recognizer:', detector_cfg['name'])
         raise NotImplementedError

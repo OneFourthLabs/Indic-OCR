@@ -13,9 +13,8 @@ class End2EndOCR_Base(ABC):
     def run(self, img):
         return []
     
-    @abstractmethod
     def load_img(self, img_path):
-        pass
+        return imageio.imread(img_path)
 
     def draw_bboxes(self, img, bboxes, out_img_file):
         rect_color = (255,0,0)
@@ -27,3 +26,22 @@ class End2EndOCR_Base(ABC):
         # cv2.waitKey(0); cv2.destroyAllWindows()
         imageio.imsave(out_img_file, img)
         return img
+
+def load_extractor(config):
+    detector_name = config['detector']['name']
+    recognizer_name = config['recognizer']['name']
+    
+    if detector_name == recognizer_name == 'tesseract':
+        from indic_ocr.end2end.tesseract import TessarectOCR
+        return TessarectOCR(config['langs'],
+                            config['recognizer']['params'].get('min_confidence', 0.1),
+                            psm=config['detector'].get('psm', 3))
+    
+    if detector_name == recognizer_name == 'easy_ocr':
+        from indic_ocr.end2end.easy_ocr import EasyOCR
+        args = config['detector']['params']
+        return EasyOCR(config['langs'], args=args,
+                       gpu=config.get('gpu', False),
+                       model_dir=config.get('model_dir', None))
+    
+    return None
