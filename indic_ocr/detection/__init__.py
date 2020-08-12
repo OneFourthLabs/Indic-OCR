@@ -25,7 +25,8 @@ class Detector_Base(ABC):
         imageio.imsave(out_img_file, img)
         return img
 
-def load_detector(detector_cfg):
+def load_detector(config):
+    detector_cfg = config['detector']
     if detector_cfg['name'] == 'craft':
         from indic_ocr.detection.craft import CRAFT_Detector
         return CRAFT_Detector(detector_cfg.get('params', {}))

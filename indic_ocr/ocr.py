@@ -18,13 +18,13 @@ class OCR:
 
     def load_models(self, config):
         from indic_ocr.detection import load_detector
-        detector = load_detector(config['detector'])
+        detector = load_detector(config)
         
         detect_only = config['recognizer']['disabled'] if 'disabled' in config['recognizer'] else False
         recognizer = None
         if not detect_only:
             from indic_ocr.recognition import load_recognizer
-            recognizer = load_recognizer(config['recognizer'], config['langs'])
+            recognizer = load_recognizer(config)
         
         from indic_ocr.end2end.detect_recog_joiner import DetectRecogJoiner
         self.extractor = DetectRecogJoiner(detector, recognizer)
