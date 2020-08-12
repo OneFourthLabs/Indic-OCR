@@ -1,8 +1,9 @@
 
-if __name__ == '__main__':
-    import argparse
+import argparse
+def parse_arguments():
     parser = argparse.ArgumentParser(
         prog='Evaluation Metrics for OCR')
+    
     parser.add_argument(
         '-d',
         dest='detection_mode',
@@ -19,8 +20,12 @@ if __name__ == '__main__':
     '-gt',
     '--gtfolder',
     dest='gt_folder',
-    required=True,
     help='folder containing your ground truth JSON and images')
+    
+    parser.add_argument(
+    '--gt-txt',
+    dest='gt_txt',
+    help='TSV file with your ground truth labels and image paths for recognition')
     
     parser.add_argument(
     '-det',
@@ -36,17 +41,22 @@ if __name__ == '__main__':
     default=None,
     help='config JSON file')
     
-    args = parser.parse_args()
+    return parser.parse_args()
+
+if __name__ == '__main__':
+    args = parse_arguments()
     
     if args.detection_mode:
         if not args.det_folder:
             exit('Provide --detfolder for detected outputs')
+        if not args.gt_folder:
+            exit('Provide --gtfolder for ground truth')
         from indic_ocr.evaluation.detection import eval_detections
         eval_detections(args.gt_folder, args.det_folder)
     
     if args.recognition_mode:
         if not args.config:
             exit('Provide --config file')
+        gt = args.gt_folder if args.gt_folder else args.gt_txt
         from indic_ocr.evaluation.recognition import RecognizerEval
-        RecognizerEval(args.config).eval(args.gt_folder)
-    
+        RecognizerEval(args.config).eval(gt)

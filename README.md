@@ -25,6 +25,17 @@ python indic_ocr/evaluate.py -d -gt <ground_truth_json_folder> -det <detections_
 
 ## Computing Recognition Accuracies
 
+### Using OCR's JSON Format
+
 ```
 python indic_ocr/evaluate.py -r -gt <ground_truth_json_folder> -cfg <config_json_file>
 ```
+
+### Using a TSV file
+
+```
+python indic_ocr/evaluate.py -r --gt-txt <ground_truth_tsv> -cfg <config_json_file>
+```
+
+Parameters:
+- `--gt-txt`: Tab-separated file with each line having `image_path` and corresponding `text_label`
