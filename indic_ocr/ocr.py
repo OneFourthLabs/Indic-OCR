@@ -6,6 +6,7 @@ from indic_ocr.utils.image import get_all_images
 
 class OCR:
     def __init__(self, config_json):
+        print('Loading models using', config_json)
         with open(config_json, encoding='utf-8') as f:
             config = json.load(f)
         
@@ -15,6 +16,7 @@ class OCR:
         self.extractor = load_extractor(config)
         if not self.extractor:
             self.load_models(config)
+        print('OCR Loading complete!')
 
     def load_models(self, config):
         from indic_ocr.detection import load_detector
@@ -37,20 +39,24 @@ class OCR:
         images = get_all_images(input_folder)
         
         for img_path in tqdm(images, unit=' images'):
-            img = self.extractor.load_img(img_path)
-            bboxes = self.extractor.run(img)
-            out_file = os.path.join(output_folder, os.path.splitext(os.path.basename(img_path))[0])
-            gt = {
-                'data': bboxes,
-                'height': img.shape[0],
-                'width': img.shape[1],
-            } # Add more metadata
-            with open(out_file+'.json', 'w', encoding='utf-8') as f:
-                json.dump(gt, f, ensure_ascii=False, indent=4)
-            if self.draw:
-                img = self.extractor.draw_bboxes(img, bboxes, out_file+'.jpg')
+            self.process_img(img_path, output_folder)
         
         return
+    
+    def process_img(self, img_path, output_folder):
+        img = self.extractor.load_img(img_path)
+        bboxes = self.extractor.run(img)
+        out_file = os.path.join(output_folder, os.path.splitext(os.path.basename(img_path))[0])
+        if self.draw:
+            img = self.extractor.draw_bboxes(img, bboxes, out_file+'.jpg')
+        gt = {
+            'data': bboxes,
+            'height': img.shape[0],
+            'width': img.shape[1],
+        } # Add more metadata
+        with open(out_file+'.json', 'w', encoding='utf-8') as f:
+            json.dump(gt, f, ensure_ascii=False, indent=4)
+        return out_file
 
 if __name__ == '__main__':
     # TODO: Use click or argparse

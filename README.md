@@ -39,3 +39,10 @@ python indic_ocr/evaluate.py -r --gt-txt <ground_truth_tsv> -cfg <config_json_fi
 
 Parameters:
 - `--gt-txt`: Tab-separated file with each line having `image_path` and corresponding `text_label`
+
+## Running UI Server
+
+0. Ensure *StreamLit* is installed (`pip install streamlit`)
+1. Run `streamlit run server.py`
+
+It should automatically open the UI in your browser.
