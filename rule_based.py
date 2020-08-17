@@ -2,7 +2,7 @@ import fire
 import json
 import numpy as np
 
-from extractors import voter_back, voter_front, pan
+from extractors.rule_based import voter_back, voter_front, pan
 
 doc_type_map = {
     'voter_back': voter_back,

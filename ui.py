@@ -1,27 +1,17 @@
 import os, sys
+import streamlit as st
 
 INDIC_OCR_PATH = os.environ['INDIC_OCR_HOME']
 sys.path.append(INDIC_OCR_PATH)
 
-from ocr_ui import get_configs, get_model, setup_ocr_sidebar, setup_uploader, CONFIGS_PATH, IMAGES_FOLDER, OUTPUT_FOLDER
-
-import streamlit as st
-import os
-
-from streamlit_utils.widgets import *
+from ocr_ui import get_configs, get_model, setup_ocr_sidebar, setup_uploader, display_ocr_output, CONFIGS_PATH, IMAGES_FOLDER, OUTPUT_FOLDER
 from streamlit_utils.file import *
-
-import streamlit_utils.state
 
 CONFIGS_PATH = os.path.join(INDIC_OCR_PATH, CONFIGS_PATH)
 IMAGES_FOLDER = os.path.join(INDIC_OCR_PATH, IMAGES_FOLDER)
 OUTPUT_FOLDER = os.path.join(INDIC_OCR_PATH, OUTPUT_FOLDER)
 
-def display_ocr_output(output_path, doc_type='raw'):
-    ocr_output_image = st.image(os.path.relpath(output_path) + '.jpg', use_column_width=True)
-    st.markdown(get_binary_file_downloader_html(output_path+'.json', 'OCR JSON'), unsafe_allow_html=True)
-    st.markdown(get_binary_file_downloader_html(output_path+'.jpg', 'OCR Image'), unsafe_allow_html=True)
-    
+def run_extractor(output_path, doc_type='raw'):   
     if doc_type == 'raw':
         return
     
@@ -50,15 +40,19 @@ def setup_ocr_runner(img: io.BytesIO, model):
     latest_progress.text('Status: Running OCR')
     output_path = model.process_img(img_path, OUTPUT_FOLDER)
     
-    latest_progress.text('Status: OCR Complete!')
+    display_ocr_output(output_path)
+    latest_progress.text('Status: OCR Complete! Running Extractor...')
+    progress_bar.progress(0.8)
+    
+    run_extractor(output_path, doc_type)
+    
+    latest_progress.text('Status: Extraction Complete!')
     progress_bar.progress(1.0)
     start_button.button('Clear')
     
-    display_ocr_output(output_path, doc_type)
     return
 
 def show_ui(global_state):
-    production_mode('Indic OCR GUI - AI4Bharat')
     model = setup_ocr_sidebar(CONFIGS_PATH, global_state)
     uploaded_img = setup_uploader()
     if not uploaded_img:
@@ -67,7 +61,10 @@ def show_ui(global_state):
     return
 
 if __name__ == '__main__':
+    # from streamlit_utils.widgets import *
+    # production_mode('Indian DocXtract - AI4Bharat')
+    import streamlit_utils.state
     global_state = st.get_global_state()
-    print('Rerunning UI')
+    
     show_ui(global_state)
     global_state.sync()
