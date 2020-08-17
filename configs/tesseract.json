@@ -12,7 +12,7 @@
     "recognizer": {
         "name": "tesseract",
         "params": {
-            "psm": 7,
+            "psm": 13,
             "min_confidence": 0
         }
     }

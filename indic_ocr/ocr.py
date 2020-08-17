@@ -5,10 +5,13 @@ from tqdm import tqdm
 from indic_ocr.utils.image import get_all_images
 
 class OCR:
-    def __init__(self, config_json):
+    def __init__(self, config_json: str, additional_languages: list=None):
         print('Loading models using', config_json)
         with open(config_json, encoding='utf-8') as f:
             config = json.load(f)
+        
+        if additional_languages is not None:
+            config['langs'] = ['en'] + additional_languages
         
         self.draw = config['draw'] if 'draw' in config else False
         

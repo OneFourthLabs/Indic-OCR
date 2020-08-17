@@ -13,12 +13,8 @@ class RecognizerEval:
             config = json.load(f)
         
         self.recognizer = load_recognizer(config)
-        
     
     def recognize_image(self, img_path):
-        '''
-        Returns an array of tuples of (pred_word, gt_word)
-        '''
         img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
         gt_path = os.path.splitext(img_path)[0] + '.json'
         if not os.path.isfile(gt_path):
@@ -46,7 +42,7 @@ class RecognizerEval:
         if not images:
             exit('No images in: ' + image_folder)
         outputs, gt_list = [], []
-        for image in tqdm(images, desc='Running Recognizer', unit=' images'):
+        for image in tqdm(images, desc='Running Recognizer', unit='image'):
             output, gt = self.recognize_image(image)
             if output:
                 outputs.extend(output)
@@ -57,15 +53,16 @@ class RecognizerEval:
     # Edit-Distance
     def compute_levenshtein(self, pred, gt, max_levenshtein=5):
         assert len(pred) == len(gt)
+        total = len(gt)
         # Maintain the count of each edit-distances
         counter = Counter()
         max_chars = 0
         for ref, hyp in zip(gt, pred):
             max_chars += max(len(ref), len(hyp))
             counter[SequenceMatcher(a=ref, b=hyp).distance()] += 1
+        avg_chars = max_chars/total
         
         # Compute accuracy for each edit-distance
-        total = len(gt)
         accuracies = [0] * max_levenshtein
         total_dist = 0
         for levenshtein, count in counter.items():
@@ -74,7 +71,7 @@ class RecognizerEval:
             total_dist += levenshtein * count
         
         avg_dist = total_dist/total
-        return accuracies, avg_dist, avg_dist/max_chars
+        return accuracies, avg_dist, avg_dist/avg_chars
     
     def read_gt_tsv(self, gt_file):
         with open(gt_file, 'r', encoding='utf-8') as f:
@@ -98,7 +95,7 @@ class RecognizerEval:
         images, gt = self.read_gt_tsv(gt_file)
         outputs = []
         # Run Inference
-        for image in tqdm(images, desc='Running recognizer', unit=' images'):
+        for image in tqdm(images, desc='Running recognizer', unit='image'):
             word = self.infer(image)
             outputs.append(word)
         # Dump output to a file

@@ -2,14 +2,17 @@ import streamlit as st
 from glob import glob
 import os, io
 from datetime import datetime
-import base64
+
+from streamlit_utils.widgets import *
+import streamlit_utils.state
+
+global_state = st.get_global_state()
 
 CONFIGS_PATH = 'configs/*.json'
 
 IMAGES_FOLDER = 'images/server/'
 OUTPUT_FOLDER = 'images/server/output'
-
-PRODUCTION = True
+ADDITIONAL_LANGS = ['hi', 'ta']
 
 def dump_jpeg(img: io.BytesIO):
     out_file = datetime.now().strftime("%Y-%m-%d__%H-%M-%S") + '.jpg'
@@ -17,42 +20,6 @@ def dump_jpeg(img: io.BytesIO):
     with open(out_file, 'wb') as f:
         f.write(img.getbuffer())
     return out_file
-
-def get_binary_file_downloader_html(bin_file, file_label='File'):
-    with open(bin_file, 'rb') as f:
-        data = f.read()
-    bin_str = base64.b64encode(data).decode()
-    
-    # Style courtesy: fabriziovanmarciano.com/button-styles/
-    custom_css = f""" 
-        <style>
-        .dl_button_cont {{
-        margin-top: 5px;
-        margin-bottom: 5px;
-        }}
-        .dl_button {{
-        color: #494949 !important;
-        text-transform: uppercase;
-        text-decoration: none;
-        background: #ffffff;
-        padding: 5px;
-        border: 2px solid #494949 !important;
-        display: inline-block;
-        transition: all 0.4s ease 0s;
-        }}
-        .dl_button:hover {{
-        color: #ffffff !important;
-        background: #f6b93b;
-        border-color: #f6b93b !important;
-        transition: all 0.4s ease 0s;
-        text-decoration: none;
-        }}
-        </style>
-    """
-    href = custom_css + f'''<div align="center" class="dl_button_cont">
-    <a href="data:application/octet-stream;base64,{bin_str}" class="dl_button" download="{os.path.basename(bin_file)}">Download {file_label}</a>
-    </div>'''
-    return href
 
 @st.cache
 def get_configs():
@@ -62,19 +29,29 @@ def get_configs():
 # Store a maximum of 1 full OCR model (for now, since it's heavy)
 # Disabling mutation check since it uses deep-recursive hasing, hence costly
 @st.cache(max_entries=1, allow_output_mutation=True)
-def get_model(config_name):
+def get_model(config_name, langs=None):
     config = CONFIGS_PATH.replace('*', config_name)
     from indic_ocr.ocr import OCR
-    return OCR(config)
+    return OCR(config, langs)
 
 def show_sidebar():
     st.sidebar.title('OCR Settings')
+    
+    st.sidebar.subheader('Additional Languages')
+    default_extra_langs = global_state.langs if type(global_state.langs) is list else ADDITIONAL_LANGS
+    extra_langs = st.sidebar.multiselect('By default, all languages are selected', ADDITIONAL_LANGS, default_extra_langs)
+    global_state.langs = extra_langs
+    
     st.sidebar.subheader('Config')
-    config = st.sidebar.selectbox('', get_configs(), index=3)
+    default_config_index = global_state.config_index if type(global_state.config_index) is int else 3
+    configs = get_configs()
+    config = st.sidebar.selectbox('', configs, index=default_config_index)
+    global_state.config_index = configs.index(config)
+    
     model_status = st.sidebar.empty()
     model_status.text('Loading model. Please wait...')
     global MODEL
-    MODEL = get_model(config)
+    MODEL = get_model(config, extra_langs)
     model_status.text('Model ready!')
     
     st.sidebar.title('About')
@@ -128,24 +105,11 @@ def show_main():
     show_img.image(uploaded_img, caption='Uploaded picture', width=480)
     show_ocr_runner(uploaded_img)
 
-def production_hacks():
-    # Src: docs.streamlit.io/en/stable/api.html#placeholders-help-and-options
-    st.beta_set_page_config(page_title='Indic OCR GUI - AI4Bharat', page_icon='🤖')
-    # Src: discuss.streamlit.io/t/how-do-i-hide-remove-the-menu-in-production/362
-    hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    </style>
-    """
-    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-    return
-
 def show_ui():
-    if PRODUCTION:
-        production_hacks()
+    production_mode('Indic OCR GUI - AI4Bharat')
     show_sidebar()
     show_main()
 
 print('Rerunning UI')
 show_ui()
+global_state.sync()

@@ -1,7 +1,7 @@
 {
     "langs": [
         "en",
-        "hi"
+        "ta"
     ],
     "draw": true,
     "model_dir": "models/EasyOCR",
@@ -10,11 +10,11 @@
         "name": "easy_ocr",
         "params": {
             "text_threshold": 0.7,
-            "link_threshold": 0.7,
+            "link_threshold": 0.4,
             "low_text": 0.4,
             "canvas_size": 2560,
             "mag_ratio": 1,
-            "slope_ths": 0
+            "slope_ths": 0.5
         }
     },
     "recognizer": {

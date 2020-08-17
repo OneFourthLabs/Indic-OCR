@@ -16,7 +16,7 @@
         "name": "tesseract",
         "disabled": false,
         "params": {
-            "psm": 7,
+            "psm": 13,
             "min_confidence": 0
         }
     }
