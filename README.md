@@ -43,6 +43,6 @@ Parameters:
 ## Running UI Server
 
 0. Ensure *StreamLit* is installed (`pip install streamlit`)
-1. Run `streamlit run server.py --server.port 80`
+1. Run `streamlit run ocr_ui.py --server.port 80`
 
 It should automatically open the UI in your browser.
