@@ -6,24 +6,28 @@ sys.path.append(INDIC_OCR_PATH)
 
 from ocr_ui import get_configs, get_model, setup_ocr_sidebar, setup_uploader, display_ocr_output, CONFIGS_PATH, IMAGES_FOLDER, OUTPUT_FOLDER
 from streamlit_utils.file import *
+from lstm_extractor import extract_with_model
+from rule_based import extract
 
+MODELS_FOLDER = "extraction-models"
 CONFIGS_PATH = os.path.join(INDIC_OCR_PATH, CONFIGS_PATH)
 IMAGES_FOLDER = os.path.join(INDIC_OCR_PATH, IMAGES_FOLDER)
 OUTPUT_FOLDER = os.path.join(INDIC_OCR_PATH, OUTPUT_FOLDER)
+MODELS_PATH = os.path.join(INDIC_OCR_PATH, MODELS_FOLDER)
 
-def run_extractor(output_path, doc_type='raw'):   
+def run_extractor(img_path, output_path, doc_type='raw'):   
     if doc_type == 'raw':
         return
-    
-    from rule_based import extract
-    data = extract(output_path+'.json', doc_type)
+    if "LSTM" in doc_type:
+        data = extract_with_model(output_path+'.json', doc_type, MODELS_PATH)
+    else:
+        data = extract(output_path+'.json', doc_type)
     st.json(data)
-    
     return
 
 def setup_ocr_runner(img: io.BytesIO, model):
     st.subheader('Step-2: **OCR and extract document info!**')
-    doc_type = st.selectbox('', ['raw', 'pan', 'voter_front', 'voter_back'], index=0)
+    doc_type = st.selectbox('', ['raw', 'pan', 'voter_front', 'voter_back', 'voter_back(LSTM)', 'voter_front(LSTM)', 'pan(LSTM)'], index=0)
     latest_progress = st.text('Status: Ready to process')
     progress_bar = st.progress(0.0)
     
@@ -44,7 +48,7 @@ def setup_ocr_runner(img: io.BytesIO, model):
     latest_progress.text('Status: OCR Complete! Running Extractor...')
     progress_bar.progress(0.8)
     
-    run_extractor(output_path, doc_type)
+    run_extractor(img_path, output_path, doc_type)
     
     latest_progress.text('Status: Extraction Complete!')
     progress_bar.progress(1.0)
