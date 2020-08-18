@@ -40,3 +40,10 @@
 
 <hr/>
 
+## Recognition
+
+### Custom ClovaAI
+
+- Ensure the [Clova AI repo](https://github.com/clovaai/deep-text-recognition-benchmark/) is cloned at `libs\clova_ai_recognition`.
+- (...TODO: Add more )
+- Sample config: [`craft+clova_ai.json`](/configs/craft+clova_ai.json)

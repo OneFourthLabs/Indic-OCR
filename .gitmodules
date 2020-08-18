@@ -1,0 +1,3 @@
+[submodule "libs/clova_ai_recognition"]
+	path = libs/clova_ai_recognition
+	url = https://github.com/clovaai/deep-text-recognition-benchmark

@@ -1,6 +1,7 @@
 langdetect
 tqdm
 edit_distance
+munch
 
 # Image processing libs
 Pillow

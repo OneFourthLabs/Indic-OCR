@@ -1,0 +1,31 @@
+{
+    "langs": [
+        "en",
+        "hi",
+        "ta"
+    ],
+    "draw": true,
+    "gpu": true,
+    "detector": {
+        "name": "craft",
+        "params": {
+            "text_threshold": 0.7,
+            "link_threshold": 0.4,
+            "low_text": 0.4,
+            "cuda": true,
+            "long_size": 1280
+        }
+    },
+    "recognizer": {
+        "name": "clova_ai",
+        "disabled": false,
+        "model_dir": "models/clova_ai/TPS-ResNet-BiLSTM-Attn-Seed1111",
+        "params": {
+            "Prediction": "Attn",
+            "Transformation": "TPS",
+            "FeatureExtraction": "ResNet",
+            "SequenceModeling": "BiLSTM",
+            "batch_max_length": 90
+        }
+    }
+}
