@@ -32,9 +32,8 @@ def get_values(full_str, lang='ta'):
     
     ## -- EXTRACT REGIONAL NAME -- #
     regional_key = key_map[lang]['name'].split()[0]
-    while line_i < n_lines and not any((
-        regional_key in lines[line_i],
-        ':' in lines[line_i])): # Weak but ok
+    while line_i < n_lines and not regional_key in lines[line_i]:
+        # ':' in lines[line_i])): # Weak but ok
         line_i += 1
     
     if line_i >= n_lines:
@@ -48,9 +47,8 @@ def get_values(full_str, lang='ta'):
     line_i += 1
     
     ## -- EXTRACT ENGLISH NAME -- #
-    while line_i < n_lines and not any((
-        'Elector' in lines[line_i],
-        ':' in lines[line_i])): # Weak but ok
+    while line_i < n_lines and not 'Elector' in lines[line_i]:
+        #':' in lines[line_i])): # Weak but ok
         line_i += 1
     
     if line_i >= n_lines:
@@ -65,9 +63,8 @@ def get_values(full_str, lang='ta'):
     
     ## -- RELATION'S REGIONAL NAME -- #
     regional_key = key_map[lang]['relation'].split()[0]
-    while line_i < n_lines and not any((
-        regional_key in lines[line_i],
-        ':' in lines[line_i])): # Weak but ok
+    while line_i < n_lines and not regional_key in lines[line_i]:
+        #':' in lines[line_i])): # Weak but ok
         line_i += 1
     
     if line_i >= n_lines:
@@ -81,9 +78,8 @@ def get_values(full_str, lang='ta'):
     line_i += 1
     
     ## -- RELATION'S ENGLISH NAME -- #
-    while line_i < n_lines and not any((
-        'Relation' in lines[line_i],
-        ':' in lines[line_i])): # Weak but ok
+    while line_i < n_lines and not 'Relation' in lines[line_i]:
+        #':' in lines[line_i])): # Weak but ok
         line_i += 1
     
     if line_i >= n_lines:

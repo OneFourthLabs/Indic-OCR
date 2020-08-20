@@ -9,13 +9,12 @@ from streamlit_utils.file import *
 from lstm_extractor import extract_with_model
 from rule_based import extract
 
-MODELS_FOLDER = "extraction-models"
+MODELS_PATH = "extraction-models"
 CONFIGS_PATH = os.path.join(INDIC_OCR_PATH, CONFIGS_PATH)
 IMAGES_FOLDER = os.path.join(INDIC_OCR_PATH, IMAGES_FOLDER)
 OUTPUT_FOLDER = os.path.join(INDIC_OCR_PATH, OUTPUT_FOLDER)
-MODELS_PATH = os.path.join(INDIC_OCR_PATH, MODELS_FOLDER)
 
-def run_extractor(img_path, output_path, doc_type='raw'):   
+def run_extractor(output_path, doc_type='raw'):
     if doc_type == 'raw':
         return
     if "LSTM" in doc_type:
@@ -48,7 +47,7 @@ def setup_ocr_runner(img: io.BytesIO, model):
     latest_progress.text('Status: OCR Complete! Running Extractor...')
     progress_bar.progress(0.8)
     
-    run_extractor(img_path, output_path, doc_type)
+    run_extractor(output_path, doc_type)
     
     latest_progress.text('Status: Extraction Complete!')
     progress_bar.progress(1.0)
@@ -65,8 +64,8 @@ def show_ui(global_state):
     return
 
 if __name__ == '__main__':
-    # from streamlit_utils.widgets import *
-    # production_mode('Indian DocXtract - AI4Bharat')
+    from streamlit_utils.widgets import *
+    production_mode('Indian DocXtract - AI4Bharat')
     import streamlit_utils.state
     global_state = st.get_global_state()
     

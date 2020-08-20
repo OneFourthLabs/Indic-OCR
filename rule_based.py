@@ -1,4 +1,3 @@
-import fire
 import json
 import numpy as np
 
@@ -45,6 +44,7 @@ def extract(json_file: str, doc_type, write_to=None):
     with open(json_file, encoding='utf-8') as f:
         input = json.load(f)
     bboxes = input['data']
+    bboxes = [bbox for bbox in bboxes if 'text' in bbox]
     h, w = input['height'], input['width']
     bboxes = sort_bboxes(bboxes)
     full_str = get_full_string(bboxes)
@@ -56,4 +56,5 @@ def extract(json_file: str, doc_type, write_to=None):
     return result
 
 if __name__ == '__main__':
+    import fire
     fire.Fire(extract)

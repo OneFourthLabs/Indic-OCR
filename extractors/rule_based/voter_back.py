@@ -21,7 +21,7 @@ def get_values(full_str, lang='ta'):
     result = {'en': {}, lang: {}}
     
     ## -- EXTRACT GENDER -- ##
-    while line_i < n_lines and not 'sex' in lines[line_i].lower():
+    while line_i < n_lines and not 'sex' in lines[line_i].lower() and not 'male' in lines[line_i].lower():
         line_i += 1
     if line_i >= n_lines:
         print('Failed to discern the gender')
@@ -33,7 +33,7 @@ def get_values(full_str, lang='ta'):
     line_i += 1
     
     ## -- EXTRACT DOB -- ##
-    while line_i < n_lines and not 'dob' in lines[line_i].lower():
+    while line_i < n_lines and not 'dob' in lines[line_i].lower() and not 'age' in lines[line_i].lower() and not 'yr' in lines[line_i].lower():
         line_i += 1
     if line_i >= n_lines:
         print('Failed to find DOB')
