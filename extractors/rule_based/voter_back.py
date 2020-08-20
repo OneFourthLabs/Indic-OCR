@@ -3,8 +3,13 @@ import re
 key_map = {
     'ta': {
         'address': 'முகவரி',
-        'gender': 'இனம்‌',
+        'gender': 'இனம்',
         'dob': 'பிறந்த தேதி'
+    },
+    'hi': {
+        'address': 'पता',
+        'gender': 'लिंग',
+        'dob': 'जन्म की तारीख'
     }
 }
 
@@ -12,6 +17,10 @@ value_map = {
     'ta': {
         'Male': 'ஆண்‌',
         'Female': 'பெண்',
+    },
+    'hi': {
+        'Male': 'पुरुष',
+        'Female': 'महिला'
     }
 }
 
@@ -21,7 +30,8 @@ def get_values(full_str, lang='ta'):
     result = {'en': {}, lang: {}}
     
     ## -- EXTRACT GENDER -- ##
-    while line_i < n_lines and not 'sex' in lines[line_i].lower() and not 'male' in lines[line_i].lower():
+    regional_key = key_map[lang]['gender']
+    while line_i < n_lines and not 'sex' in lines[line_i].lower() and not 'male' in lines[line_i].lower() and not regional_key in lines[line_i]:
         line_i += 1
     if line_i >= n_lines:
         print('Failed to discern the gender')

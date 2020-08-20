@@ -8,8 +8,8 @@ import numpy as np
 import string
 
 doc_classes_map = {
-    'voter_back(LSTM)': ['address_en_value', 'address_ta_value', 'date_value', 'dob_value', 'ignore', 'sex_value_en', 'sex_value_ta'],
-    'voter_front(LSTM)': ['father_name_en', 'father_name_ta', 'ignore', 'name_en', 'name_ta', 'voter_id'],
+    'voter_back(LSTM)': ['address_en_value', 'address_indic_value', 'date_value', 'dob_value', 'ignore', 'sex_value_en', 'sex_value_indic'],
+    'voter_front(LSTM)': ['father_name_en', 'father_name_indic', 'ignore', 'name_en', 'name_indic', 'voter_id'],
     'pan(LSTM)': ['dob', 'ignore', 'name_en', 'pan_id', 'parent_en']
 }
 
@@ -50,7 +50,7 @@ def get_preds(bboxes, texts, doc_type, model):
                 key_values[entity] = text
     result = {}
     result["key_values"] = key_values
-    result["raw"] = raw
+    result["ignored"] = raw
     
     return result
 
@@ -74,8 +74,11 @@ def extract_with_model(json_file: str, doc_type, models_path, write_to=None):
           
     model = get_model(doc_type, models_path)
     result = get_preds(bboxes, texts, doc_type, model)
+    if write_to:
+        with open(write_to, 'w', encoding='utf-8') as f:
+            json.dump(result, f, ensure_ascii=False, indent=2)
     return result
 
-
-
-
+if __name__ == '__main__':
+    import fire
+    fire.Fire(extract_with_model)

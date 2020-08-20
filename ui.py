@@ -14,17 +14,17 @@ CONFIGS_PATH = os.path.join(INDIC_OCR_PATH, CONFIGS_PATH)
 IMAGES_FOLDER = os.path.join(INDIC_OCR_PATH, IMAGES_FOLDER)
 OUTPUT_FOLDER = os.path.join(INDIC_OCR_PATH, OUTPUT_FOLDER)
 
-def run_extractor(output_path, doc_type='raw'):
+def run_extractor(output_path, doc_type='raw', lang='en'):
     if doc_type == 'raw':
         return
     if "LSTM" in doc_type:
         data = extract_with_model(output_path+'.json', doc_type, MODELS_PATH)
     else:
-        data = extract(output_path+'.json', doc_type)
+        data = extract(output_path+'.json', doc_type, lang)
     st.json(data)
     return
 
-def setup_ocr_runner(img: io.BytesIO, model):
+def setup_ocr_runner(img: io.BytesIO, model, model_state):
     st.subheader('Step-2: **OCR and extract document info!**')
     doc_type = st.selectbox('', ['raw', 'pan', 'voter_front', 'voter_back', 'voter_back(LSTM)', 'voter_front(LSTM)', 'pan(LSTM)'], index=0)
     latest_progress = st.text('Status: Ready to process')
@@ -47,7 +47,8 @@ def setup_ocr_runner(img: io.BytesIO, model):
     latest_progress.text('Status: OCR Complete! Running Extractor...')
     progress_bar.progress(0.8)
     
-    run_extractor(output_path, doc_type)
+    lang = model_state.langs[0] if model_state.langs else 'en'
+    run_extractor(output_path, doc_type, lang)
     
     latest_progress.text('Status: Extraction Complete!')
     progress_bar.progress(1.0)
@@ -60,7 +61,7 @@ def show_ui(global_state):
     uploaded_img = setup_uploader()
     if not uploaded_img:
         return
-    setup_ocr_runner(uploaded_img, model)
+    setup_ocr_runner(uploaded_img, model, global_state)
     return
 
 if __name__ == '__main__':

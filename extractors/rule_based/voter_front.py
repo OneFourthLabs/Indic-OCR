@@ -4,6 +4,10 @@ key_map = {
     'ta': {
         'name': 'வாக்காளரின் பெயர்',
         'relation': 'உறவினரின் பெயர்'
+    },
+    'hi': {
+        'name': 'नाम',
+        'relation': 'पिता का नाम'
     }
 }
 
@@ -20,10 +24,15 @@ def get_values(full_str, lang='ta'):
         print('Failed to find the ID')
         return result
     
-    # regex_pattern = r'[A-Z][A-Z][A-Z]\d\d\d\d\d\d\d' # Fails when bad OCR
+    exact_regex_pattern = r'[A-Z][A-Z][A-Z]\d\d\d\d\d\d\d' # Fails when bad OCR
     regex_pattern = r'\w{10}'
     matches = re.findall(regex_pattern, lines[line_i])
-    if not matches:
+    while not matches:
+        line_i += 1
+        if line_i >= n_lines: break
+        matches = re.findall(exact_regex_pattern, lines[line_i])
+    
+    if line_i >= n_lines or not matches:
         print('Unable to parse ID')
         return result
     
@@ -33,7 +42,6 @@ def get_values(full_str, lang='ta'):
     ## -- EXTRACT REGIONAL NAME -- #
     regional_key = key_map[lang]['name'].split()[0]
     while line_i < n_lines and not regional_key in lines[line_i]:
-        # ':' in lines[line_i])): # Weak but ok
         line_i += 1
     
     if line_i >= n_lines:
@@ -47,8 +55,9 @@ def get_values(full_str, lang='ta'):
     line_i += 1
     
     ## -- EXTRACT ENGLISH NAME -- #
-    while line_i < n_lines and not 'Elector' in lines[line_i]:
-        #':' in lines[line_i])): # Weak but ok
+    # Note: Tamil Voter has the key 'Elector Name', but Hindi has 'Name'
+    # TODO: 'Name' can accidentally match with 'Parent Name' too. How to fix?
+    while line_i < n_lines and not 'Elector' in lines[line_i] and not 'Name' in lines[line_i]:
         line_i += 1
     
     if line_i >= n_lines:
@@ -64,7 +73,6 @@ def get_values(full_str, lang='ta'):
     ## -- RELATION'S REGIONAL NAME -- #
     regional_key = key_map[lang]['relation'].split()[0]
     while line_i < n_lines and not regional_key in lines[line_i]:
-        #':' in lines[line_i])): # Weak but ok
         line_i += 1
     
     if line_i >= n_lines:
@@ -79,7 +87,6 @@ def get_values(full_str, lang='ta'):
     
     ## -- RELATION'S ENGLISH NAME -- #
     while line_i < n_lines and not 'Relation' in lines[line_i]:
-        #':' in lines[line_i])): # Weak but ok
         line_i += 1
     
     if line_i >= n_lines:
