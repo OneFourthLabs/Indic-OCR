@@ -33,6 +33,9 @@ def load_detector(config):
     elif detector_cfg['name'] == 'east':
         from indic_ocr.detection.east import EAST_Detector
         return EAST_Detector(**detector_cfg.get('params', {}))
+    elif detector_cfg['name'] == 'db':
+        from indic_ocr.detection.db import DB_Detector
+        return DB_Detector(**detector_cfg.get('params', {}))
     else:
         print('No support for recognizer:', detector_cfg['name'])
         raise NotImplementedError

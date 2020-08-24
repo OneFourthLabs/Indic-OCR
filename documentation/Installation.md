@@ -27,16 +27,21 @@
 
 ## Detection
 
-### Configuring CRAFT
+### [CRAFT](https://github.com/clovaai/CRAFT-pytorch)
 
 - `pip install craft-text-detector`
 - To run on GPU, install CUDA & CuDNN with corresponding PyTorch.
 - Sample config: [`craft+tesseract.json`](/configs/craft+tesseract.json)
 
-### Configuring EAST Detector
+### [OpenCV EAST](https://bitbucket.org/tomhoag/opencv-text-detection/) Detector
 
-- Uses OpenCV's DNN Module
+- Uses OpenCV's DNN Module (CPU Only)
 - Sample config: [`east+tesseract.json`](/configs/east+tesseract.json)
+
+### [DB](https://arxiv.org/abs/1911.08947) Text Detector
+
+- Ensure the [PyTorchOCR repo](https://github.com/WenmuZhou/PytorchOCR) is cloned at `libs/PyTorchOCR`.
+- Sample config: [`db+tesseract.json`](/configs/db+tesseract.json)
 
 <hr/>
 
@@ -44,6 +49,6 @@
 
 ### Custom ClovaAI
 
-- Ensure the [Clova AI repo](https://github.com/clovaai/deep-text-recognition-benchmark/) is cloned at `libs\clova_ai_recognition`.
+- Ensure the [Clova AI repo](https://github.com/clovaai/deep-text-recognition-benchmark/) is cloned at `libs/clova_ai_recognition`.
 - (...TODO: Add more )
 - Sample config: [`craft+clova_ai.json`](/configs/craft+clova_ai.json)

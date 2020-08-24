@@ -1,4 +1,5 @@
-import os
+import sys, os
+sys.path.append(os.path.abspath('libs/clova_ai_recognition'))
 
 import torch
 import torch.nn.functional as F

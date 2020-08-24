@@ -63,7 +63,11 @@ class OCR:
 
 if __name__ == '__main__':
     # TODO: Use click or argparse
-    config_json, input_folder = sys.argv[1:3]
+    config_json, input_path = sys.argv[1:3]
     output_folder = sys.argv[3] if len(sys.argv) > 3 else None
     
-    OCR(config_json).process(input_folder, output_folder)
+    ocr = OCR(config_json)
+    if os.path.isfile(input_path):
+        ocr.process_img(input_path, output_folder)
+    else:
+        ocr.process(input_path, output_folder)

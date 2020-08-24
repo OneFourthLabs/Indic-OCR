@@ -21,10 +21,6 @@ def load_recognizer(config):
                                   gpu=config.get('gpu', False),
                                   model_dir=config.get('model_dir', None))
     elif recognizer_cfg['name'] == 'clova_ai':
-        # Set the repo path into env
-        import sys, os
-        sys.path.append(os.path.abspath('libs/clova_ai_recognition'))
-        
         from indic_ocr.recognition.clova_ai import ClovaAI_Recognizer
         return ClovaAI_Recognizer(config['langs'],
                                   gpu=config.get('gpu', False),
