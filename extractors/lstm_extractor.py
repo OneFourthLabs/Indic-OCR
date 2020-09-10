@@ -57,6 +57,10 @@ def get_preds(bboxes, texts, doc_type, model):
 def extract_with_model(json_file: str, doc_type, models_path, write_to=None):
     with open(json_file, encoding='utf-8') as f:
         input = json.load(f)
+        input = [bbox for bbox in input if 'text' in bbox]
+        if not input:
+            return {'Status': 'OCR Failed'}
+    
     h, w = input['height'], input['width']
     texts = []
     bboxes = []

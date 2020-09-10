@@ -47,6 +47,8 @@ def extract(json_file: str, doc_type, write_to=None):
         input = json.load(f)
     bboxes = input['data']
     bboxes = [bbox for bbox in bboxes if 'text' in bbox]
+    if not bboxes:
+        return {'Status': 'OCR Failed'}
     h, w = input['height'], input['width']
     bboxes = sort_bboxes(bboxes, w, h)
     full_str = get_full_string(bboxes)

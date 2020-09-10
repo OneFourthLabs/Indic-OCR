@@ -49,6 +49,10 @@ def get_values(full_str, lang='hi'):
     line_i += 1
     
     ## -- EXTRACT ID -- #
+    if line_i >= n_lines:
+        print('Failed to find DOB')
+        return result
+    
     backtrack_line_i = line_i
     # Search for parts of 'PERMANENT ACCOUNT NUMBER'
     while line_i < n_lines and not 'COUNT' in lines[line_i].upper() and not 'NUMB' in lines[line_i].upper():
