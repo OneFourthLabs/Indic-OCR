@@ -24,19 +24,16 @@ def get_model(config_name, configs_path_pattern, langs=None):
     from indic_ocr.ocr import OCR
     return OCR(config, langs)
 
-def setup_ocr_sidebar(configs_path_pattern, model_state):
+def setup_ocr_sidebar(configs_path_pattern):
     st.sidebar.title('OCR Settings')
     
     st.sidebar.subheader('Additional Languages')
-    default_extra_langs = model_state.langs if type(model_state.langs) is list else ADDITIONAL_LANGS
-    extra_langs = st.sidebar.multiselect('By default, all languages are selected', ADDITIONAL_LANGS, default_extra_langs)
-    model_state.langs = extra_langs
+    extra_langs = st.sidebar.multiselect('By default, all languages are selected', ADDITIONAL_LANGS, ADDITIONAL_LANGS)
     
     st.sidebar.subheader('Config')
-    default_config_index = model_state.config_index if type(model_state.config_index) is int else 3
+    default_config_index = 3
     configs = get_configs(configs_path_pattern)
     config = st.sidebar.selectbox('', configs, index=default_config_index)
-    model_state.config_index = configs.index(config)
     
     model_status = st.sidebar.empty()
     model_status.text('Loading model. Please wait...')
@@ -95,8 +92,8 @@ def setup_uploader():
     show_img.image(uploaded_img, caption='Uploaded picture', width=480)
     return uploaded_img
 
-def show_ui(global_state):
-    model = setup_ocr_sidebar(CONFIGS_PATH, global_state)
+def show_ui():
+    model = setup_ocr_sidebar(CONFIGS_PATH)
     uploaded_img = setup_uploader()
     if not uploaded_img:
         return
@@ -105,9 +102,4 @@ def show_ui(global_state):
 
 if __name__ == '__main__':
     production_mode('Indic OCR GUI - AI4Bharat')
-    
-    import streamlit_utils.state
-    global_state = st.get_global_state()
-    
-    show_ui(global_state)
-    global_state.sync()
+    show_ui()
