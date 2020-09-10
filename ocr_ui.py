@@ -26,19 +26,17 @@ def get_model(config_name, configs_path_pattern, langs=None):
     from indic_ocr.ocr import OCR
     return OCR(config, langs)
 
-def setup_ocr_sidebar(configs_path_pattern, model_state):
+def setup_ocr_sidebar(configs_path_pattern):
     st.sidebar.title('OCR Settings')
     
     st.sidebar.subheader('Additional Languages')
-    default_extra_langs = model_state.langs if type(model_state.langs) is list else ADDITIONAL_LANGS
-    extra_langs = st.sidebar.multiselect('By default, all languages are selected', ADDITIONAL_LANGS, default_extra_langs)
-    model_state.langs = extra_langs
+    global extra_langs
+    extra_langs = st.sidebar.multiselect('By default, all languages are selected', ADDITIONAL_LANGS, ADDITIONAL_LANGS)
     
     st.sidebar.subheader('Config')
-    default_config_index = model_state.config_index if type(model_state.config_index) is int else 3
+    default_config_index = 3
     configs = get_configs(configs_path_pattern)
     config = st.sidebar.selectbox('', configs, index=default_config_index)
-    model_state.config_index = configs.index(config)
     
     model_status = st.sidebar.empty()
     model_status.text('Loading model. Please wait...')
@@ -68,7 +66,7 @@ def run_extractor(output_path, doc_type='raw', lang='en'):
     st.json(data)
     return
 
-def setup_ocr_runner(img: io.BytesIO, model, model_state):
+def setup_ocr_runner(img: io.BytesIO, model):
     st.subheader('Step-2: **OCR and extract document info!**')
     doc_type = st.selectbox('', ['raw', 'pan', 'voter_front', 'voter_back', 'voter_back(LSTM)', 'voter_front(LSTM)', 'pan(LSTM)'], index=0)
     latest_progress = st.text('Status: Ready to process')
@@ -91,7 +89,7 @@ def setup_ocr_runner(img: io.BytesIO, model, model_state):
     latest_progress.text('Status: OCR Complete! Running Extractor...')
     progress_bar.progress(0.8)
     
-    lang = model_state.langs[0] if model_state.langs else 'en'
+    lang = extra_langs[0] if extra_langs else 'en'
     run_extractor(output_path, doc_type, lang)
     
     latest_progress.text('Status: Extraction Complete!')
@@ -116,19 +114,14 @@ def setup_uploader():
     show_img.image(uploaded_img, caption='Uploaded picture', width=480)
     return uploaded_img
 
-def show_ui(global_state):
-    model = setup_ocr_sidebar(CONFIGS_PATH, global_state)
+def show_ui():
+    model = setup_ocr_sidebar(CONFIGS_PATH)
     uploaded_img = setup_uploader()
     if not uploaded_img:
         return
-    setup_ocr_runner(uploaded_img, model, global_state)
+    setup_ocr_runner(uploaded_img, model)
     return
 
 if __name__ == '__main__':
-    production_mode('Indian DocXtract - AI4Bharat')
-    
-    import streamlit_utils.state
-    global_state = st.get_global_state()
-    
-    show_ui(global_state)
-    global_state.sync()
+    production_mode('Indian DocXtract - AI4Bharat')    
+    show_ui()
