@@ -1,7 +1,7 @@
 import json
 import numpy as np
 
-from extractors.rule_based import voter_back, voter_front, pan
+from .rules import voter_back, voter_front, pan
 
 doc_type_map = {
     'voter_back': voter_back,

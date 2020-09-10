@@ -11,6 +11,8 @@ IMAGES_FOLDER = os.path.join('images', 'server')
 OUTPUT_FOLDER = os.path.join(IMAGES_FOLDER, 'output')
 ADDITIONAL_LANGS = ['hi', 'ta']
 
+MODELS_PATH = 'models'
+
 @st.cache
 def get_configs(configs_path_pattern):
     files = glob(configs_path_pattern)
@@ -53,8 +55,22 @@ def display_ocr_output(output_path):
     st.markdown(get_binary_file_downloader_html(output_path+'.jpg', 'OCR Image'), unsafe_allow_html=True)
     return
 
-def setup_ocr_runner(img: io.BytesIO, model):
-    st.subheader('Step-2: **OCR!**')
+from extractors.lstm_extractor import extract_with_model
+from extractors.rule_based import extract
+
+def run_extractor(output_path, doc_type='raw', lang='en'):
+    if doc_type == 'raw':
+        return
+    if "LSTM" in doc_type:
+        data = extract_with_model(output_path+'.json', doc_type, MODELS_PATH)
+    else:
+        data = extract(output_path+'.json', doc_type, lang)
+    st.json(data)
+    return
+
+def setup_ocr_runner(img: io.BytesIO, model, model_state):
+    st.subheader('Step-2: **OCR and extract document info!**')
+    doc_type = st.selectbox('', ['raw', 'pan', 'voter_front', 'voter_back', 'voter_back(LSTM)', 'voter_front(LSTM)', 'pan(LSTM)'], index=0)
     latest_progress = st.text('Status: Ready to process')
     progress_bar = st.progress(0.0)
     
@@ -70,13 +86,18 @@ def setup_ocr_runner(img: io.BytesIO, model):
     progress_bar.progress(0.2)
     latest_progress.text('Status: Running OCR')
     output_path = model.process_img(img_path, OUTPUT_FOLDER)
-    output_path = os.path.abspath(output_path)
     
-    latest_progress.text('Status: OCR Complete!')
+    display_ocr_output(output_path)
+    latest_progress.text('Status: OCR Complete! Running Extractor...')
+    progress_bar.progress(0.8)
+    
+    lang = model_state.langs[0] if model_state.langs else 'en'
+    run_extractor(output_path, doc_type, lang)
+    
+    latest_progress.text('Status: Extraction Complete!')
     progress_bar.progress(1.0)
     start_button.button('Clear')
     
-    display_ocr_output(output_path)
     return
 
 def setup_uploader():
@@ -100,11 +121,11 @@ def show_ui(global_state):
     uploaded_img = setup_uploader()
     if not uploaded_img:
         return
-    setup_ocr_runner(uploaded_img, model)
+    setup_ocr_runner(uploaded_img, model, global_state)
     return
 
 if __name__ == '__main__':
-    production_mode('Indic OCR GUI - AI4Bharat')
+    production_mode('Indian DocXtract - AI4Bharat')
     
     import streamlit_utils.state
     global_state = st.get_global_state()
