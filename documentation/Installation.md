@@ -23,6 +23,13 @@
 - Sample config: [`easy_ocr.json`](/configs/easy_ocr.json)
 - [Languages supported](https://github.com/JaidedAI/EasyOCR#supported-languages) | [Parameters allowed](https://github.com/JaidedAI/EasyOCR#readtext-method)
 
+### [Google Vision OCR](https://cloud.google.com/vision/docs/ocr#vision_text_detection-python)
+
+- `pip install google-cloud-vision`
+- Sample config: [`google_ocr.json`](/configs/google_ocr.json)
+- Ensure to set `service_account_json` path in config if not using GCP
+- [Pricing](https://cloud.google.com/vision/pricing)
+
 <hr/>
 
 ## Detection
