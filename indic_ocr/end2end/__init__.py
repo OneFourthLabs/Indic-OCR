@@ -44,4 +44,8 @@ def load_extractor(config):
                        gpu=config.get('gpu', False),
                        model_dir=config.get('model_dir', None))
     
+    if detector_name == recognizer_name == 'google':
+        from indic_ocr.end2end.google_ocr import GoogleOCR
+        return GoogleOCR(config['langs'], config.get('service_account_json', ''))
+    
     return None
