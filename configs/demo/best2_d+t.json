@@ -1,0 +1,23 @@
+{
+    "langs": [
+        "en",
+        "hi",
+        "ta"
+    ],
+    "draw": true,
+    "detector": {
+        "name": "db",
+        "params": {
+            "max_input_size": 736,
+            "model_path": "models/pytorch_ocr/icdar2015/db_ResNet50_vd_icdar2015withconfig.pth"
+        }
+    },
+    "recognizer": {
+        "name": "tesseract",
+        "disabled": false,
+        "params": {
+            "psm": 13,
+            "min_confidence": 0
+        }
+    }
+}

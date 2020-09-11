@@ -5,7 +5,7 @@ import os
 from streamlit_utils.widgets import *
 from streamlit_utils.file import *
 
-CONFIGS_PATH = 'configs/*.json'
+CONFIGS_PATH = 'configs/demo/*.json'
 
 IMAGES_FOLDER = os.path.join('images', 'server')
 OUTPUT_FOLDER = os.path.join(IMAGES_FOLDER, 'output')

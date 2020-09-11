@@ -1,0 +1,15 @@
+{
+    "langs": [
+        "en",
+        "hi",
+        "ta"
+    ],
+    "draw": true,
+    "detector": {
+        "name": "google"
+    },
+    "recognizer": {
+        "name": "google"
+    },
+    "service_account_json": ""
+}

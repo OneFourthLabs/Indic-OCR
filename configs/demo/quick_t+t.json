@@ -1,0 +1,19 @@
+{
+    "langs": [
+        "en",
+        "hi",
+        "ta"
+    ],
+    "draw": true,
+    "detector": {
+        "name": "tesseract",
+        "psm": 3
+    },
+    "recognizer": {
+        "name": "tesseract",
+        "params": {
+            "psm": 13,
+            "min_confidence": 0
+        }
+    }
+}

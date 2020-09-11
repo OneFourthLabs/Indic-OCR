@@ -1,0 +1,26 @@
+{
+    "langs": [
+        "en",
+        "hi",
+        "ta"
+    ],
+    "draw": true,
+    "detector": {
+        "name": "craft",
+        "params": {
+            "text_threshold": 0.7,
+            "link_threshold": 0.4,
+            "low_text": 0.4,
+            "cuda": true,
+            "long_size": 1280
+        }
+    },
+    "recognizer": {
+        "name": "tesseract",
+        "disabled": false,
+        "params": {
+            "psm": 13,
+            "min_confidence": 0
+        }
+    }
+}
