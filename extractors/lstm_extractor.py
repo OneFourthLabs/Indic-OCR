@@ -50,15 +50,15 @@ def get_preds(bboxes, texts, doc_type, model):
                 key_values[entity] = text
     result = {}
     result["key_values"] = key_values
-    result["ignored"] = raw
+    #result["ignored"] = raw
     
     return result
 
 def extract_with_model(json_file: str, doc_type, models_path, write_to=None):
     with open(json_file, encoding='utf-8') as f:
         input = json.load(f)
-        input = [bbox for bbox in input if 'text' in bbox]
-        if not input:
+        input_bboxes = [bbox for bbox in input['data'] if 'text' in bbox]
+        if not input_bboxes:
             return {'Status': 'OCR Failed'}
     
     h, w = input['height'], input['width']
@@ -66,7 +66,7 @@ def extract_with_model(json_file: str, doc_type, models_path, write_to=None):
     bboxes = []
     
     #Unlist the texts and bboxes
-    for i in input["data"]:
+    for i in input_bboxes:
         texts.append(i["text"])
         bboxes.append(list(itertools.chain(*i["points"])))
 
