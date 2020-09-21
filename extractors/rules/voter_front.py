@@ -7,7 +7,7 @@ key_map = {
     },
     'hi': {
         'name': 'नाम',
-        'relation': 'पिता का नाम'
+        'relation': 'पिता नाम'
     }
 }
 
@@ -41,6 +41,7 @@ def get_values(full_str, lang='ta'):
     
     ## -- EXTRACT REGIONAL NAME -- #
     regional_key = key_map[lang]['name'].split()[0]
+    regional_key_b = key_map[lang]['name'].split()[1]
     while line_i < n_lines and not regional_key in lines[line_i]:
         line_i += 1
     
@@ -53,7 +54,23 @@ def get_values(full_str, lang='ta'):
     
     result[lang]['name'] = name
     line_i += 1
+
+    if not name:
+        # What if it's in the next line?
+        if line_i < n_lines:
+            #if regional_key_b in lines[line_i]:
+            name = ' '.join(lines[line_i].split()[1:]).replace(':', '').strip()
+        if name:
+            result[lang]['name'] = name
+            line_i += 1
+        else:
+            print('Corrupt Regional name')
+            # return result
     
+    if name.startswith(regional_key) or name.startswith(regional_key_b):
+        name = ' '.join(name.split()[1:])
+        result[lang]['name'] = name
+
     ## -- EXTRACT ENGLISH NAME -- #
     # Note: Tamil Voter has the key 'Elector Name', but Hindi has 'Name'
     # TODO: 'Name' can accidentally match with 'Parent Name' too. How to fix?
@@ -69,6 +86,22 @@ def get_values(full_str, lang='ta'):
     
     result['en']['name'] = name
     line_i += 1
+
+    if not name:
+        # What if it's in the next line?
+        if line_i < n_lines:
+            #if 'name' in lines[line_i].lower():
+            name = ' '.join(lines[line_i].split()[1:]).replace(':', '').strip()
+        if name:
+            result['en']['name'] = name
+            line_i += 1
+        else:
+            print('Corrupt English name')
+            # return result
+    
+    if name.lower().startswith('name') or name.lower().startswith('elect'):
+        name = ' '.join(name.split()[1:])
+        result['en']['name'] = name
     
     ## -- RELATION'S REGIONAL NAME -- #
     regional_key = key_map[lang]['relation'].split()[0]
@@ -84,9 +117,25 @@ def get_values(full_str, lang='ta'):
     
     result[lang]['relation'] = name
     line_i += 1
+
+    if not name:
+        # What if it's in the next line?
+        if line_i < n_lines:
+            #if regional_key_b in lines[line_i]:
+            name = ' '.join(lines[line_i].split()[1:]).replace(':', '').strip()
+        if name:
+            result[lang]['relation'] = name
+            line_i += 1
+        else:
+            print('Corrupt Relation regional name')
+            # return result
+    
+    if name.startswith(regional_key) or name.startswith(regional_key_b):
+        name = ' '.join(name.split()[1:])
+        result[lang]['relation'] = name
     
     ## -- RELATION'S ENGLISH NAME -- #
-    while line_i < n_lines and not 'Relation' in lines[line_i]:
+    while line_i < n_lines and not 'relation' in lines[line_i].lower() and not 'father' in lines[line_i].lower() and not 'parent' in lines[line_i].lower():
         line_i += 1
     
     if line_i >= n_lines:
@@ -98,5 +147,21 @@ def get_values(full_str, lang='ta'):
     
     result['en']['relation'] = name
     line_i += 1
+
+    if not name:
+        # What if it's in the next line?
+        if line_i < n_lines:
+            #if 'name' in lines[line_i].lower():
+            name = ' '.join(lines[line_i].split()[1:]).replace(':', '').strip()
+        if name:
+            result['en']['relation'] = name
+            line_i += 1
+        else:
+            print('Corrupt Relation English name')
+            # return result
+    
+    if name.lower().startswith('name') or name.lower().startswith('relation') or name.lower().startswith('father') or name.lower().startswith('parent'):
+        name = ' '.join(name.split()[1:])
+        result['en']['relation'] = name
     
     return result

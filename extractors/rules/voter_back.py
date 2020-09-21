@@ -96,13 +96,13 @@ def get_values(full_str, lang='ta'):
     result['en']['address'] = address
     
     ## -- EXTRACT DATE OF ISSUE -- ##
-    while line_i < n_lines and not 'date' in lines[line_i].lower():
+    while line_i < n_lines and not 'dat' in lines[line_i].lower():
         line_i += 1
     if line_i >= n_lines:
         print('Failed to parse DoI')
         return result
     
-    matches = re.findall(r'(\d+-\d+-\d+)', lines[line_i])
+    matches = re.findall(r'(\d+[-/ ]\d+[-/ ]\d+)', lines[line_i])
     if not matches:
         print('DoI in broken format?')
         return result

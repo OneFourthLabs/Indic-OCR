@@ -20,7 +20,7 @@ def get_configs(configs_path_pattern):
 
 # Store a maximum of 1 full OCR model (for now, since it's heavy)
 # Disabling mutation check since it uses deep-recursive hasing, hence costly
-@st.cache(max_entries=1, allow_output_mutation=True)
+@st.cache(max_entries=6, allow_output_mutation=True)
 def get_model(config_name, configs_path_pattern, langs=None):
     config = configs_path_pattern.replace('*', config_name)
     from indic_ocr.ocr import OCR
@@ -34,9 +34,14 @@ def setup_ocr_sidebar(configs_path_pattern):
     extra_langs = st.sidebar.multiselect('By default, all languages are selected', ADDITIONAL_LANGS, ADDITIONAL_LANGS)
     
     st.sidebar.subheader('Config')
-    default_config_index = 3
+    default_config_index = 4
     configs = get_configs(configs_path_pattern)
     config = st.sidebar.selectbox('', configs, index=default_config_index)
+
+    ## Quick Patch for bilingual Easy OCR
+    if len(extra_langs) > 1 and config == 'easy_fast':
+        extra_langs = extra_langs[0:1]
+        st.sidebar.text('This model is bilingual,\nhence choosing only: ' + extra_langs[0])
     
     model_status = st.sidebar.empty()
     model_status.text('Loading model. Please wait...')
@@ -68,6 +73,7 @@ def run_extractor(output_path, doc_type='raw', lang='en'):
 
 def setup_ocr_runner(img: io.BytesIO, model):
     st.subheader('Step-2: **OCR and extract document info!**')
+    #doc_type = st.selectbox('', ['raw', 'pan', 'pan(LSTM)'], index=0)
     doc_type = st.selectbox('', ['raw', 'pan', 'voter_front', 'voter_back', 'voter_back(LSTM)', 'voter_front(LSTM)', 'pan(LSTM)'], index=0)
     latest_progress = st.text('Status: Ready to process')
     progress_bar = st.progress(0.0)

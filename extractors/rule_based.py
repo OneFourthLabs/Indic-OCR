@@ -9,7 +9,7 @@ doc_type_map = {
     'pan': pan
 }
 
-def get_full_string(sorted_bboxes: list, y_threshold: float = 0.025):
+def get_full_string(sorted_bboxes: list, y_threshold: float = 0.023):
     full_str = ''
     last_h = sorted_bboxes[0]['points'][0][1]
     for bbox in sorted_bboxes:
@@ -21,7 +21,7 @@ def get_full_string(sorted_bboxes: list, y_threshold: float = 0.025):
         last_h = y
     return full_str
 
-def sort_bboxes(bboxes: list, img_width, img_height, y_threshold=0.025):
+def sort_bboxes(bboxes: list, img_width, img_height, y_threshold=0.023):
     for bbox in bboxes:
         bbox['x_mid'], bbox['y_mid'] = np.mean(bbox['points'], axis=0)
         bbox['x_mid'] /= img_width
