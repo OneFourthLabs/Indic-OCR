@@ -8,6 +8,7 @@ Pillow
 opencv-python
 imageio
 numpy
+docdetect
 
 # OCR libs
 pytesseract
