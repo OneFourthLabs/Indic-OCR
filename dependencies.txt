@@ -11,8 +11,5 @@ numpy
 docdetect
 docscan
 
-# OCR libs
-pytesseract
-
 # Detection libs
 nms

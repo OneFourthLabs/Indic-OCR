@@ -10,7 +10,7 @@
 ## Running OCR
 
 ```
-python indic_ocr/ocr.py <config.json> <input_folder> [<output_folder>]
+python run.py <config.json> <input_folder> [<output_folder>]
 ```
 
 Check [`configs`](/configs/) folder for sample configs.
@@ -20,7 +20,7 @@ Check [`configs`](/configs/) folder for sample configs.
 ## Computing Detection Scores
 
 ```
-python indic_ocr/evaluate.py -d -gt <ground_truth_json_folder> -det <detections_json_folder>
+python evaluate.py -d -gt <ground_truth_json_folder> -det <detections_json_folder>
 ```
 
 ## Computing Recognition Accuracies

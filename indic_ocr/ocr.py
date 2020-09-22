@@ -1,5 +1,5 @@
 import json
-import os, sys
+import os
 from tqdm import tqdm
 
 from indic_ocr.utils.image import get_all_images
@@ -71,14 +71,3 @@ class OCR:
         with open(out_file+'.json', 'w', encoding='utf-8') as f:
             json.dump(gt, f, ensure_ascii=False, indent=4)
         return out_file
-
-if __name__ == '__main__':
-    # TODO: Use click or argparse
-    config_json, input_path = sys.argv[1:3]
-    output_folder = sys.argv[3] if len(sys.argv) > 3 else None
-    
-    ocr = OCR(config_json)
-    if os.path.isfile(input_path):
-        ocr.process_img(input_path, output_folder)
-    else:
-        ocr.process(input_path, output_folder)
