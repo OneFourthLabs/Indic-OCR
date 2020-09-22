@@ -9,6 +9,7 @@ opencv-python
 imageio
 numpy
 docdetect
+docscan
 
 # OCR libs
 pytesseract

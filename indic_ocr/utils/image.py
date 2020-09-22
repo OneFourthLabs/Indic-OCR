@@ -3,6 +3,8 @@ from glob import glob
 from PIL import Image
 import cv2
 import numpy as np
+from scipy.spatial import distance as dist
+
 IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg']
 
 def get_all_images(folder):
@@ -94,3 +96,30 @@ def crop_image_around_polygon(img, polygon):
         cv2.waitKey(0); cv2.destroyAllWindows()
         return warped
     return cv2.rotate(warped, degrees_to_cv2_rotation[angle])
+
+def order_points_clockwise(pts):
+    '''
+    Src: pyimagesearch.com/2016/03/21/ordering-coordinates-clockwise-with-python-and-opencv/
+    '''
+    pts = np.array(pts)
+    # sort the points based on their x-coordinates
+    xSorted = pts[np.argsort(pts[:, 0]), :]
+    # grab the left-most and right-most points from the sorted
+    # x-roodinate points
+    leftMost = xSorted[:2, :]
+    rightMost = xSorted[2:, :]
+    # now, sort the left-most coordinates according to their
+    # y-coordinates so we can grab the top-left and bottom-left
+    # points, respectively
+    leftMost = leftMost[np.argsort(leftMost[:, 1]), :]
+    (tl, bl) = leftMost
+    # now that we have the top-left coordinate, use it as an
+    # anchor to calculate the Euclidean distance between the
+    # top-left and right-most points; by the Pythagorean
+    # theorem, the point with the largest distance will be
+    # our bottom-right point
+    D = dist.cdist(tl[np.newaxis], rightMost, "euclidean")[0]
+    (br, tr) = rightMost[np.argsort(D)[::-1], :]
+    # return the coordinates in top-left, top-right,
+    # bottom-right, and bottom-left order
+    return [tl, tr, br, bl]
