@@ -7,30 +7,33 @@ import torch
 import numpy as np
 import string
 
-doc_classes_map = {
-    'voter_back(LSTM)': ['address_en_value', 'address_indic_value', 'date_value', 'dob_value', 'ignore', 'sex_value_en', 'sex_value_indic'],
-    'voter_front(LSTM)': ['father_name_en', 'father_name_indic', 'ignore', 'name_en', 'name_indic', 'voter_id'],
-    'pan(LSTM)': ['dob', 'ignore', 'name_en', 'pan_id', 'parent_en']
-}
-
-models_name_map = {
-    'voter_back(LSTM)': 'voter-back-model.pt',
-    'voter_front(LSTM)': 'voter-front-model.pt',
-    'pan(LSTM)': 'pan-model.pt'
+doc_map = {
+    'pan': {
+        'classes': ['en-dob', 'ignore', 'en-name', 'en-id', 'en-parent'],
+        'model': 'pan-model.pt',
+    },
+    'voter_back': {
+        'classes': ['en-address', 'indic-address', 'en-doi', 'en-dob', 'ignore', 'en-gender', 'indic-gender'],
+        'model': 'voter-back-model.pt',
+    },
+    'voter_front': {
+        'classes': ['en-relation', 'indic-relation', 'ignore', 'en-name', 'indic-name', 'en-id'],
+        'model': 'voter-front-model.pt',
+    },
 }
 
 def get_model(doc_type, models_path, hidden_dim= 256, num_layers=3, embed_dim=8):
-    label_size = len(doc_classes_map[doc_type])
+    label_size = len(doc_map[doc_type]['classes'])
     model = Classifier(embed_dim=embed_dim, hidden_dim=hidden_dim,
                        num_layers=num_layers, label_size=label_size)
     model.load_state_dict(torch.load(os.path.join(
-        models_path, models_name_map[doc_type]), map_location=torch.device('cpu')))
+        models_path, doc_map[doc_type]['model']), map_location=torch.device('cpu')))
     return model    
 
-def get_preds(bboxes, texts, doc_type, model):
+def get_preds(bboxes, texts, doc_type, lang, model):
     preds = model(torch.from_numpy(np.array(bboxes)).unsqueeze(0), device=torch.device("cpu")).squeeze(0)
     max_preds = preds.argmax(dim = 1, keepdim = True)
-    target_labels = doc_classes_map[doc_type]
+    target_labels = doc_map[doc_type]['classes']
     reverse_maps = [target_labels[i] for i in max_preds]
     
     raw = {}
@@ -48,13 +51,23 @@ def get_preds(bboxes, texts, doc_type, model):
                 key_values[entity] = key_values[entity] + " " + text
             else:
                 key_values[entity] = text
-    result = {}
-    result["key_values"] = key_values
-    #result["ignored"] = raw
+    
+    # Split the keys into specific lang dicts
+    result = {'en': {}, lang: {}}
+    for key, value in key_values.items():
+        if 'ignore' in key:
+            continue
+        l, k = key.split('-')
+        if l == 'indic':
+            l = lang
+        result[l][k] = value
+    
+    # result["key_values"] = key_values
+    # result["ignored"] = raw
     
     return result
 
-def extract_with_model(json_file: str, doc_type, models_path, write_to=None):
+def extract_with_model(json_file: str, doc_type, lang, models_path, write_to=None):
     with open(json_file, encoding='utf-8') as f:
         input = json.load(f)
         input_bboxes = [bbox for bbox in input['data'] if 'text' in bbox]
@@ -77,7 +90,7 @@ def extract_with_model(json_file: str, doc_type, models_path, write_to=None):
             coor[i+1] = coor[i+1]/h
           
     model = get_model(doc_type, models_path)
-    result = get_preds(bboxes, texts, doc_type, model)
+    result = get_preds(bboxes, texts, doc_type, lang, model)
     if write_to:
         with open(write_to, 'w', encoding='utf-8') as f:
             json.dump(result, f, ensure_ascii=False, indent=2)

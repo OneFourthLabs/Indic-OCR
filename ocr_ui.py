@@ -11,7 +11,7 @@ IMAGES_FOLDER = os.path.join('images', 'server')
 OUTPUT_FOLDER = os.path.join(IMAGES_FOLDER, 'output')
 ADDITIONAL_LANGS = ['hi', 'ta']
 
-MODELS_PATH = 'models'
+MODELS_PATH = 'models/extraction'
 
 @st.cache
 def get_configs(configs_path_pattern):
@@ -34,7 +34,7 @@ def setup_ocr_sidebar(configs_path_pattern):
     extra_langs = st.sidebar.multiselect('By default, all languages are selected', ADDITIONAL_LANGS, ADDITIONAL_LANGS)
     
     st.sidebar.subheader('Config')
-    default_config_index = 4
+    default_config_index = 1
     configs = get_configs(configs_path_pattern)
     config = st.sidebar.selectbox('', configs, index=default_config_index)
 
@@ -61,11 +61,9 @@ def display_ocr_output(output_path):
 from extractors.lstm_extractor import extract_with_model
 from extractors.rule_based import extract
 
-def run_extractor(output_path, doc_type='raw', lang='en'):
-    if doc_type == 'raw':
-        return
-    if "LSTM" in doc_type:
-        data = extract_with_model(output_path+'.json', doc_type, MODELS_PATH)
+def run_extractor(output_path, extract_type, doc_type, lang='en'):
+    if "LSTM" in extract_type:
+        data = extract_with_model(output_path+'.json', doc_type, lang, MODELS_PATH)
     else:
         data = extract(output_path+'.json', doc_type, lang)
     st.json(data)
@@ -73,8 +71,12 @@ def run_extractor(output_path, doc_type='raw', lang='en'):
 
 def setup_ocr_runner(img: io.BytesIO, model):
     st.subheader('Step-2: **OCR and extract document info!**')
-    #doc_type = st.selectbox('', ['raw', 'pan', 'pan(LSTM)'], index=0)
-    doc_type = st.selectbox('', ['raw', 'pan', 'voter_front', 'voter_back', 'voter_back(LSTM)', 'voter_front(LSTM)', 'pan(LSTM)'], index=0)
+
+    extract_type = st.selectbox('Select extractor type:', ['Raw', 'Standard', 'LSTM (Experimental)'], index=1)
+    if extract_type != 'Raw':
+        doc_type = st.selectbox('Select document:', ['PAN', 'Voter Front', 'Voter Back'], index=0)
+        doc_type = doc_type.lower().replace(' ', '_')
+    
     latest_progress = st.text('Status: Ready to process')
     progress_bar = st.progress(0.0)
     
@@ -92,11 +94,13 @@ def setup_ocr_runner(img: io.BytesIO, model):
     output_path = model.process_img(img_path, OUTPUT_FOLDER)
     
     display_ocr_output(output_path)
-    latest_progress.text('Status: OCR Complete! Running Extractor...')
-    progress_bar.progress(0.8)
-    
-    lang = extra_langs[0] if extra_langs else 'en'
-    run_extractor(output_path, doc_type, lang)
+
+    if extract_type != 'Raw':
+        latest_progress.text('Status: OCR Complete! Running Extractor...')
+        progress_bar.progress(0.8)
+        
+        lang = extra_langs[0] if extra_langs else 'en'
+        run_extractor(output_path, extract_type, doc_type, lang)
     
     latest_progress.text('Status: Extraction Complete!')
     progress_bar.progress(1.0)
