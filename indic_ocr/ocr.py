@@ -1,12 +1,14 @@
 import json
-import os, sys
+import os
 from tqdm import tqdm
 
 from indic_ocr.utils.image import get_all_images
 
 class OCR:
-    def __init__(self, config_json: str, additional_languages: list=None):
-        print('Loading models using', config_json)
+    def __init__(self, config_json: str,
+                 additional_languages: list=None,
+                 preprocessors: list=None):
+        
         with open(config_json, encoding='utf-8') as f:
             config = json.load(f)
         
@@ -15,6 +17,12 @@ class OCR:
         
         self.draw = config['draw'] if 'draw' in config else False
         
+        self.preprocessor = None
+        if preprocessors:
+            from indic_ocr.utils.img_preprocess import PreProcessor
+            self.preprocessor = PreProcessor(preprocessors)
+        
+        print('Loading models using', config_json)
         from indic_ocr.end2end import load_extractor
         self.extractor = load_extractor(config)
         if not self.extractor:
@@ -47,6 +55,9 @@ class OCR:
         return
     
     def process_img(self, img_path, output_folder):
+        if self.preprocessor:
+            img_path = self.preprocessor.process(img_path)
+        
         img = self.extractor.load_img(img_path)
         bboxes = self.extractor.run(img)
         out_file = os.path.join(output_folder, os.path.splitext(os.path.basename(img_path))[0])
@@ -60,14 +71,3 @@ class OCR:
         with open(out_file+'.json', 'w', encoding='utf-8') as f:
             json.dump(gt, f, ensure_ascii=False, indent=4)
         return out_file
-
-if __name__ == '__main__':
-    # TODO: Use click or argparse
-    config_json, input_path = sys.argv[1:3]
-    output_folder = sys.argv[3] if len(sys.argv) > 3 else None
-    
-    ocr = OCR(config_json)
-    if os.path.isfile(input_path):
-        ocr.process_img(input_path, output_folder)
-    else:
-        ocr.process(input_path, output_folder)

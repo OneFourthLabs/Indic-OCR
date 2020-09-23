@@ -9,9 +9,8 @@ Pillow
 opencv-python
 imageio
 numpy
-
-# OCR libs
-pytesseract
+docdetect
+docscan
 
 # Detection libs
 nms
