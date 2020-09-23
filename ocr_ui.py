@@ -28,7 +28,8 @@ def setup_ocr_sidebar(configs_path_pattern):
     st.sidebar.title('OCR Settings')
     
     st.sidebar.subheader('Additional Languages')
-    extra_langs = st.sidebar.multiselect('By default, all languages are selected', ADDITIONAL_LANGS, ADDITIONAL_LANGS)
+    st.sidebar.text('Available Indian languages: ' + str(ADDITIONAL_LANGS))
+    extra_langs = st.sidebar.multiselect('Select your Indian language:', ADDITIONAL_LANGS, ADDITIONAL_LANGS[0:1])
     
     st.sidebar.subheader('Config')
     default_config_index = 3
@@ -82,7 +83,7 @@ def setup_uploader():
 
     st.subheader('Step-1: **Upload your image**')
     st.set_option('deprecation.showfileUploaderEncoding', False)
-    uploaded_img = st.file_uploader('', type=['jpg'])
+    uploaded_img = st.file_uploader('', type=['jpg', 'jpeg', 'jfif'])
 
     show_img = st.empty()
     if not uploaded_img:
