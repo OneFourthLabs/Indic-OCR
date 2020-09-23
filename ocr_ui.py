@@ -11,7 +11,11 @@ IMAGES_FOLDER = os.path.join('images', 'server')
 OUTPUT_FOLDER = os.path.join(IMAGES_FOLDER, 'output')
 ADDITIONAL_LANGS = ['hi', 'ta']
 
-MODELS_PATH = 'models/extraction'
+@st.cache
+def get_extractor():
+    from extractors.xtractor import Xtractor
+    MODELS_PATH = 'models/extraction'
+    return Xtractor(MODELS_PATH)
 
 @st.cache
 def get_configs(configs_path_pattern):
@@ -58,17 +62,6 @@ def display_ocr_output(output_path):
     st.markdown(get_binary_file_downloader_html(output_path+'.jpg', 'OCR Image'), unsafe_allow_html=True)
     return
 
-from extractors.lstm_extractor import extract_with_model
-from extractors.rule_based import extract
-
-def run_extractor(output_path, extract_type, doc_type, lang='en'):
-    if "LSTM" in extract_type:
-        data = extract_with_model(output_path+'.json', doc_type, lang, MODELS_PATH)
-    else:
-        data = extract(output_path+'.json', doc_type, lang)
-    st.json(data)
-    return
-
 def setup_ocr_runner(img: io.BytesIO, model):
     st.subheader('Step-2: **OCR and extract document info!**')
 
@@ -100,7 +93,8 @@ def setup_ocr_runner(img: io.BytesIO, model):
         progress_bar.progress(0.8)
         
         lang = extra_langs[0] if extra_langs else 'en'
-        run_extractor(output_path, extract_type, doc_type, lang)
+        data = get_extractor().run(output_path + '.json', extract_type, doc_type, lang)
+        st.json(data)
     
     latest_progress.text('Status: Extraction Complete!')
     progress_bar.progress(1.0)

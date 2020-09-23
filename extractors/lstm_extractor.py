@@ -1,7 +1,7 @@
 
 from extractors.lstm.model import Classifier
 from PIL import Image
-import json, os
+import os
 import itertools
 import torch
 import numpy as np
@@ -67,14 +67,7 @@ def get_preds(bboxes, texts, doc_type, lang, model):
     
     return result
 
-def extract_with_model(json_file: str, doc_type, lang, models_path, write_to=None):
-    with open(json_file, encoding='utf-8') as f:
-        input = json.load(f)
-        input_bboxes = [bbox for bbox in input['data'] if 'text' in bbox]
-        if not input_bboxes:
-            return {'Status': 'OCR Failed'}
-    
-    h, w = input['height'], input['width']
+def extract_with_model(input_bboxes, h, w, doc_type, lang, models_path):
     texts = []
     bboxes = []
     
@@ -90,12 +83,4 @@ def extract_with_model(json_file: str, doc_type, lang, models_path, write_to=Non
             coor[i+1] = coor[i+1]/h
           
     model = get_model(doc_type, models_path)
-    result = get_preds(bboxes, texts, doc_type, lang, model)
-    if write_to:
-        with open(write_to, 'w', encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
-    return result
-
-if __name__ == '__main__':
-    import fire
-    fire.Fire(extract_with_model)
+    return get_preds(bboxes, texts, doc_type, lang, model)

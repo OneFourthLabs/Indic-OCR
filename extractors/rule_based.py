@@ -1,4 +1,3 @@
-import json
 import numpy as np
 
 from .string_rules import voter_back, voter_front, pan
@@ -45,28 +44,11 @@ def sort_bboxes(bboxes: list, img_width, img_height, y_threshold=0.023):
             bboxes[i], bboxes[min_j] = bboxes[min_j], bboxes[i]
     return bboxes
 
-def extract(json_file: str, doc_type, lang, write_to=None):
-    with open(json_file, encoding='utf-8') as f:
-        input = json.load(f)
-    bboxes = input['data']
-    bboxes = [bbox for bbox in bboxes if 'text' in bbox]
-    if not bboxes:
-        return {'Status': 'OCR Failed'}
-    h, w = input['height'], input['width']
-    
-    # Pre-processing
-    if doc_type == 'voter_front':
-        bboxes = [bbox for bbox in bboxes if not (bbox['text'].startswith('EPIC') or bbox['text'].endswith('EPIC'))]
+def extract(bboxes, h, w, doc_type, lang):
     
     bboxes = sort_bboxes(bboxes, w, h)
     full_str = get_full_string(bboxes)
     result = doc_type_map[doc_type].get_values(full_str, lang)
     result['raw'] = full_str.split('\n')
-    if write_to:
-        with open(write_to, 'w', encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
+    
     return result
-
-if __name__ == '__main__':
-    import fire
-    fire.Fire(extract)
