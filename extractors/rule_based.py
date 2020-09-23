@@ -1,7 +1,7 @@
 import json
 import numpy as np
 
-from .rules import voter_back, voter_front, pan
+from .string_rules import voter_back, voter_front, pan
 
 doc_type_map = {
     'voter_back': voter_back,
@@ -24,6 +24,8 @@ def get_full_string(sorted_bboxes: list, y_threshold: float = 0.023):
 def sort_bboxes(bboxes: list, img_width, img_height, y_threshold=0.023):
     for bbox in bboxes:
         bbox['x_mid'], bbox['y_mid'] = np.mean(bbox['points'], axis=0)
+        # bbox['y_mid_top'] = np.mean(bbox['points'][:2], axis=0)[1] / img_height
+        # bbox['y_mid_bottom'] = np.mean(bbox['points'][2:], axis=0)[1] / img_height
         bbox['x_mid'] /= img_width
         bbox['y_mid'] /= img_height
     for i in range(len(bboxes)-1):
@@ -31,7 +33,8 @@ def sort_bboxes(bboxes: list, img_width, img_height, y_threshold=0.023):
         for j in range(i+1, len(bboxes)):
             if all((
                 bboxes[j]['y_mid'] < bboxes[min_j]['y_mid'],
-                abs(bboxes[j]['y_mid'] - bboxes[min_j]['y_mid']) > y_threshold
+                abs(bboxes[j]['y_mid'] - bboxes[min_j]['y_mid']) > y_threshold,
+                # abs(min(bboxes[j]['y_mid_bottom'], bboxes[min_j]['y_mid_bottom']) - max(bboxes[j]['y_mid_top'], bboxes[min_j]['y_mid_top'])) <= y_threshold
             )) or all((
                 abs(bboxes[j]['y_mid'] - bboxes[min_j]['y_mid']) <= y_threshold,
                 bboxes[j]['x_mid'] < bboxes[min_j]['x_mid']
@@ -42,7 +45,7 @@ def sort_bboxes(bboxes: list, img_width, img_height, y_threshold=0.023):
             bboxes[i], bboxes[min_j] = bboxes[min_j], bboxes[i]
     return bboxes
 
-def extract(json_file: str, doc_type, write_to=None):
+def extract(json_file: str, doc_type, lang, write_to=None):
     with open(json_file, encoding='utf-8') as f:
         input = json.load(f)
     bboxes = input['data']
@@ -50,9 +53,14 @@ def extract(json_file: str, doc_type, write_to=None):
     if not bboxes:
         return {'Status': 'OCR Failed'}
     h, w = input['height'], input['width']
+    
+    # Pre-processing
+    if doc_type == 'voter_front':
+        bboxes = [bbox for bbox in bboxes if not (bbox['text'].startswith('EPIC') or bbox['text'].endswith('EPIC'))]
+    
     bboxes = sort_bboxes(bboxes, w, h)
     full_str = get_full_string(bboxes)
-    result = doc_type_map[doc_type].get_values(full_str)
+    result = doc_type_map[doc_type].get_values(full_str, lang)
     result['raw'] = full_str.split('\n')
     if write_to:
         with open(write_to, 'w', encoding='utf-8') as f:

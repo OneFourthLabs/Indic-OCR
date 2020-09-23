@@ -3,14 +3,16 @@ import re
 def get_values(full_str, lang='hi'):
     lines = full_str.split('\n')
     line_i, n_lines = 0, len(lines)
+
     result = {'en': {}}
-    
+    result['logs'] = []
+
     ## -- EXTRACT ENGLISH NAME -- #
     while line_i < n_lines and not 'GOVT' in lines[line_i].upper() and not 'INDIA' in lines[line_i].upper():
         line_i += 1
     line_i += 1
     if line_i >= n_lines:
-        print('Failed to find name')
+        result['logs'].append('Failed to find name')
         return result
     
     result['en']['name'] = lines[line_i]
@@ -18,7 +20,7 @@ def get_values(full_str, lang='hi'):
     
     ## -- EXTRACT PARENT NAME -- #
     if line_i >= n_lines:
-        print('Failed to find parent name')
+        result['logs'].append('Failed to find parent name')
         return result
     
     result['en']['parent'] = lines[line_i]
@@ -26,14 +28,17 @@ def get_values(full_str, lang='hi'):
     
     ## -- EXTRACT DOB -- #
     if line_i >= n_lines:
-        print('Failed to find DOB')
+        result['logs'].append('Failed to find DOB')
         return result
     
     result['en']['dob'] = lines[line_i]
     # Sometimes DOB can be corrupt, also try checking for exact results
     dob_regex = r'(\d+/\d+/\d+)'
     matches = re.findall(dob_regex, result['en']['dob'])
-    if not matches:
+    if matches:
+        result['en']['dob'] = matches[0]
+    else:
+        # Search till we find the exact date pattern
         tmp_line_i = line_i
         while not matches:
             tmp_line_i += 1
@@ -41,7 +46,7 @@ def get_values(full_str, lang='hi'):
             matches = re.findall(dob_regex, lines[tmp_line_i])
         
         if tmp_line_i >= n_lines or not matches:
-            print('Warning: Exact DOB not matched')
+            result['logs'].append('Exact DOB not matched')
         else:
             line_i = tmp_line_i
             result['en']['dob'] = matches[0]
@@ -50,7 +55,7 @@ def get_values(full_str, lang='hi'):
     
     ## -- EXTRACT ID -- #
     if line_i >= n_lines:
-        print('Failed to find DOB')
+        result['logs'].append('Failed to find ID')
         return result
     
     backtrack_line_i = line_i
@@ -60,7 +65,7 @@ def get_values(full_str, lang='hi'):
     line_i += 1
     
     if line_i >= n_lines:
-        print('Failed to find ID using normal method')
+        result['logs'].append('Failed to find ID using normal method')
         # Try regex
         line_i = backtrack_line_i
         exact_regex_pattern = r'[A-Z][A-Z][A-Z][A-Z][A-Z]\d\d\d\d[A-Z]' # Fails when bad OCR
@@ -73,7 +78,7 @@ def get_values(full_str, lang='hi'):
             matches = re.findall(regex_pattern, lines[line_i])
         
         if line_i >= n_lines or not matches:
-            print('Unable to parse ID using regex')
+            result['logs'].append('Unable to parse ID using regex')
             return result
         else:
             result['en']['id'] = matches[0]
