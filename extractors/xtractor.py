@@ -1,11 +1,11 @@
 import json
 
-from .lstm_extractor import extract_with_model
+from .lstm_extractor import LSTM_Extractor
 from .rule_based import extract
 
 class Xtractor:
     def __init__(self, model_path):
-        self.model_path = model_path
+        self.lstm_extractor = LSTM_Extractor(model_path)
     
     def run(self, ocr_json_file, extract_type, doc_type, lang='en', write_to=None):
 
@@ -14,7 +14,7 @@ class Xtractor:
         bboxes = input['data']
         bboxes = [bbox for bbox in bboxes if 'text' in bbox]
         if not bboxes:
-            return {'Status': 'OCR Failed'}
+            return {'logs': ['OCR Failed']}
         
         h, w = input['height'], input['width']
 
@@ -23,7 +23,7 @@ class Xtractor:
             bboxes = [bbox for bbox in bboxes if not (bbox['text'].startswith('EPIC') or bbox['text'].endswith('EPIC'))]
 
         if "LSTM" in extract_type:
-            data = extract_with_model(bboxes, h, w, doc_type, lang, self.model_path)
+            data = self.lstm_extractor.extract(bboxes, h, w, doc_type, lang)
         else:
             data = extract(bboxes, h, w, doc_type, lang)
 
