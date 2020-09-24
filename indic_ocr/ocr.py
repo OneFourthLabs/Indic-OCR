@@ -6,8 +6,7 @@ from indic_ocr.utils.image import get_all_images
 
 class OCR:
     def __init__(self, config_json: str,
-                 additional_languages: list=None,
-                 preprocessors: list=None):
+                 additional_languages: list=None):
         
         with open(config_json, encoding='utf-8') as f:
             config = json.load(f)
@@ -16,11 +15,6 @@ class OCR:
             config['langs'] = ['en'] + additional_languages
         
         self.draw = config['draw'] if 'draw' in config else False
-        
-        self.preprocessor = None
-        if preprocessors:
-            from indic_ocr.utils.img_preprocess import PreProcessor
-            self.preprocessor = PreProcessor(preprocessors)
         
         print('Loading models using', config_json)
         from indic_ocr.end2end import load_extractor
@@ -43,21 +37,22 @@ class OCR:
         self.extractor = DetectRecogJoiner(detector, recognizer)
         return
     
-    def process(self, input_folder, output_folder=None):
+    def process(self, input_folder, preprocessor=None, output_folder=None):
         if not output_folder:
             output_folder = os.path.join(input_folder, 'ocr_output')
         os.makedirs(output_folder, exist_ok=True)
         images = get_all_images(input_folder)
         
         for img_path in tqdm(images, unit=' images'):
-            self.process_img(img_path, output_folder)
+            self.process_img(img_path, preprocessor, output_folder)
         
         return
     
-    def process_img(self, img_path, output_folder):
-        if self.preprocessor:
-            img_path = self.preprocessor.process(img_path)
+    def process_img(self, img_path, preprocessor, output_folder):
+        if preprocessor:
+            img_path = preprocessor.process(img_path, output_folder)
         
+        # TODO: Currently, each model uses different types of loader. Unify them?
         img = self.extractor.load_img(img_path)
         bboxes = self.extractor.run(img)
         out_file = os.path.join(output_folder, os.path.splitext(os.path.basename(img_path))[0])
