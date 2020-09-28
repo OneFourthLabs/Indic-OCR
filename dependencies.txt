@@ -13,6 +13,7 @@ numpy
 docdetect
 docscan
 deskew
+pyboof
 
 # Detection libs
 nms

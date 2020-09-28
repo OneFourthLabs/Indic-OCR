@@ -6,7 +6,8 @@ from indic_ocr.utils.image import get_all_images
 
 class OCR:
     def __init__(self, config_json: str,
-                 additional_languages: list=None):
+                 additional_languages: list=None,
+                 qr_scan=False):
         
         with open(config_json, encoding='utf-8') as f:
             config = json.load(f)
@@ -15,6 +16,12 @@ class OCR:
             config['langs'] = ['en'] + additional_languages
         
         self.draw = config['draw'] if 'draw' in config else False
+        
+        self.qr_scanner = None
+        if qr_scan:
+            print('Loading QR Scanner')
+            from .utils.qr_extractor import QR_Extractor
+            self.qr_scanner = QR_Extractor()
         
         print('Loading models using', config_json)
         from indic_ocr.end2end import load_extractor
@@ -37,7 +44,7 @@ class OCR:
         self.extractor = DetectRecogJoiner(detector, recognizer)
         return
     
-    def process(self, input_folder, preprocessor=None, output_folder=None):
+    def process_folder(self, input_folder, preprocessor=None, output_folder=None):
         if not output_folder:
             output_folder = os.path.join(input_folder, 'ocr_output')
         os.makedirs(output_folder, exist_ok=True)
@@ -52,9 +59,19 @@ class OCR:
         if preprocessor:
             img_path = preprocessor.process(img_path, output_folder)
         
+        # Read image
         # TODO: Currently, each model uses different types of loader. Unify them?
         img = self.extractor.load_img(img_path)
+        
+        # Run OCR
         bboxes = self.extractor.run(img)
+        
+        # Run QR Scanner
+        if self.qr_scanner:
+            qr_bboxes = self.qr_scanner.extract(img_path)
+            bboxes.extend(qr_bboxes)
+        
+        # Save output
         out_file = os.path.join(output_folder, os.path.splitext(os.path.basename(img_path))[0])
         if self.draw:
             img = self.extractor.draw_bboxes(img, bboxes, out_file+'.jpg')

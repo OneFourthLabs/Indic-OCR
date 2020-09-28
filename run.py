@@ -16,7 +16,7 @@ def run(config_json, input_path, output_folder=None, preprocessors=['deskew']):
         os.makedirs(output_folder, exist_ok=True)
         ocr.process_img(input_path, preprocessor, output_folder)
     else: # Bulk Inference
-        ocr.process(input_path, preprocessor, output_folder)
+        ocr.process_folder(input_path, preprocessor, output_folder)
     
     return
 

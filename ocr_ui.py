@@ -22,7 +22,7 @@ def get_configs(configs_path_pattern):
 def get_model(config_name, configs_path_pattern, langs=None):
     config = configs_path_pattern.replace('*', config_name)
     from indic_ocr.ocr import OCR
-    return OCR(config, langs)
+    return OCR(config, langs, qr_scan=True)
 
 @st.cache
 def get_preprocessor(preprocessors=None):
