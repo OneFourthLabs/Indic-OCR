@@ -24,12 +24,20 @@ def get_model(config_name, configs_path_pattern, langs=None):
     from indic_ocr.ocr import OCR
     return OCR(config, langs)
 
+@st.cache
+def get_preprocessor(preprocessors=None):
+    if not preprocessors:
+        return None
+    from indic_ocr.utils.img_preprocess import PreProcessor
+    return PreProcessor(preprocessors)
+
 def setup_ocr_sidebar(configs_path_pattern):
+    settings = {}
     st.sidebar.title('OCR Settings')
     
     st.sidebar.subheader('Additional Languages')
     st.sidebar.text('Available Indian languages: ' + str(ADDITIONAL_LANGS))
-    extra_langs = st.sidebar.multiselect('Select your Indian language:', ADDITIONAL_LANGS, ADDITIONAL_LANGS[0:1])
+    settings['extra_langs'] = st.sidebar.multiselect('Select your Indian language:', ADDITIONAL_LANGS, ADDITIONAL_LANGS[0:1])
     
     st.sidebar.subheader('Config')
     default_config_index = 3
@@ -38,12 +46,21 @@ def setup_ocr_sidebar(configs_path_pattern):
     
     model_status = st.sidebar.empty()
     model_status.text('Loading model. Please wait...')
-    model = get_model(config, configs_path_pattern, extra_langs)
+    settings['model'] = get_model(config, configs_path_pattern, settings['extra_langs'])
     model_status.text('Model ready!')
+    
+    # Set image pre-processors
+    PREPROCESSORS_MAP = {'Auto-Rotate': 'deskew', 'Auto-Crop': 'doc_crop'}
+    AVAILABLE_PREPROCESSORS = list(PREPROCESSORS_MAP)
+    preprocessors = st.sidebar.multiselect('Select image pre-processors:', AVAILABLE_PREPROCESSORS, AVAILABLE_PREPROCESSORS[0:1])
+    
+    for i, preprocessor in enumerate(preprocessors):
+        preprocessors[i] = PREPROCESSORS_MAP[preprocessor]
+    settings['preprocessor'] = get_preprocessor(preprocessors)
     
     st.sidebar.title('About')
     st.sidebar.text('By AI4Bharat')
-    return model
+    return settings
 
 def display_ocr_output(output_path):
     ocr_output_image = st.image(os.path.relpath(output_path + '.jpg'), use_column_width=True)
@@ -51,7 +68,7 @@ def display_ocr_output(output_path):
     st.markdown(get_binary_file_downloader_html(output_path+'.jpg', 'OCR Image'), unsafe_allow_html=True)
     return
 
-def setup_ocr_runner(img: io.BytesIO, model):
+def setup_ocr_runner(img: io.BytesIO, settings):
     st.subheader('Step-2: **OCR!**')
     latest_progress = st.text('Status: Ready to process')
     progress_bar = st.progress(0.0)
@@ -67,7 +84,7 @@ def setup_ocr_runner(img: io.BytesIO, model):
     
     progress_bar.progress(0.2)
     latest_progress.text('Status: Running OCR')
-    output_path = model.process_img(img_path, OUTPUT_FOLDER)
+    output_path = settings['model'].process_img(img_path, settings['preprocessor'], OUTPUT_FOLDER)
     output_path = os.path.abspath(output_path)
     
     latest_progress.text('Status: OCR Complete!')
@@ -94,11 +111,11 @@ def setup_uploader():
     return uploaded_img
 
 def show_ui():
-    model = setup_ocr_sidebar(CONFIGS_PATH)
+    settings = setup_ocr_sidebar(CONFIGS_PATH)
     uploaded_img = setup_uploader()
     if not uploaded_img:
         return
-    setup_ocr_runner(uploaded_img, model)
+    setup_ocr_runner(uploaded_img, settings)
     return
 
 if __name__ == '__main__':

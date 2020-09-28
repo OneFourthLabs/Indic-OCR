@@ -35,7 +35,7 @@ class PreProcessor:
         
         out_path = os.path.join(out_folder,
                         os.path.splitext(os.path.basename(img_path))[0]) \
-                        + '-preprocessed.jpg'
+                        + '-output.jpg'
         cv2.imwrite(out_path, img)
         return out_path
     
