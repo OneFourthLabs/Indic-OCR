@@ -1,13 +1,25 @@
 import sys, os
 from indic_ocr.ocr import OCR
 
-if __name__ == '__main__':
-    # TODO: Use click or argparse
-    config_json, input_path = sys.argv[1:3]
-    output_folder = sys.argv[3] if len(sys.argv) > 3 else None
+def run(config_json, input_path, output_folder=None, preprocessors=['deskew']):
+    ocr = OCR(config_json)
     
-    ocr = OCR(config_json) #, preprocessors=['doc_crop'])
-    if os.path.isfile(input_path):
-        ocr.process_img(input_path, output_folder)
-    else:
-        ocr.process(input_path, output_folder)
+    preprocessor = None
+    if preprocessors: # Load pre-processor
+        if type(preprocessors) == str:
+            preprocessors = [preprocessors]
+        
+        from indic_ocr.utils.img_preprocess import PreProcessor
+        preprocessor = PreProcessor(preprocessors)
+    
+    if os.path.isfile(input_path): # OCR an image
+        os.makedirs(output_folder, exist_ok=True)
+        ocr.process_img(input_path, preprocessor, output_folder)
+    else: # Bulk Inference
+        ocr.process_folder(input_path, preprocessor, output_folder)
+    
+    return
+
+if __name__ == '__main__':
+    import fire
+    fire.Fire(run)

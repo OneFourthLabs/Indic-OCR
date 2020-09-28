@@ -8,9 +8,12 @@ fire
 Pillow
 opencv-python
 imageio
+scikit-image
 numpy
 docdetect
 docscan
+deskew
+pyboof
 
 # Detection libs
 nms

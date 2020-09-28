@@ -28,15 +28,22 @@ def get_configs(configs_path_pattern):
 def get_model(config_name, configs_path_pattern, langs=None):
     config = configs_path_pattern.replace('*', config_name)
     from indic_ocr.ocr import OCR
-    return OCR(config, langs)
+    return OCR(config, langs, qr_scan=True)
+
+@st.cache
+def get_preprocessor(preprocessors=None):
+    if not preprocessors:
+        return None
+    from indic_ocr.utils.img_preprocess import PreProcessor
+    return PreProcessor(preprocessors)
 
 def setup_ocr_sidebar(configs_path_pattern):
+    settings = {}
     st.sidebar.title('OCR Settings')
     
     st.sidebar.subheader('Additional Languages')
-    global extra_langs
     st.sidebar.text('Available Indian languages: ' + str(ADDITIONAL_LANGS))
-    extra_langs = st.sidebar.multiselect('Select your Indian language:', ADDITIONAL_LANGS, ADDITIONAL_LANGS[0:1])
+    settings['extra_langs'] = st.sidebar.multiselect('Select your Indian language:', ADDITIONAL_LANGS, ADDITIONAL_LANGS[0:1])
     
     st.sidebar.subheader('Config')
     default_config_index = 1
@@ -44,18 +51,27 @@ def setup_ocr_sidebar(configs_path_pattern):
     config = st.sidebar.selectbox('', configs, index=default_config_index)
 
     ## Quick Patch for bilingual Easy OCR
-    if len(extra_langs) > 1 and config == 'easy_fast':
-        extra_langs = extra_langs[0:1]
-        st.sidebar.text('This model is bilingual,\nhence choosing only: ' + extra_langs[0])
+    if len(settings['extra_langs']) > 1 and config == 'easy_fast':
+        settings['extra_langs'] = settings['extra_langs'][0:1]
+        st.sidebar.text('This model is bilingual,\nhence choosing only: ' + settings['extra_langs'][0])
     
     model_status = st.sidebar.empty()
     model_status.text('Loading model. Please wait...')
-    model = get_model(config, configs_path_pattern, extra_langs)
+    settings['model'] = get_model(config, configs_path_pattern, settings['extra_langs'])
     model_status.text('Model ready!')
+    
+    # Set image pre-processors
+    PREPROCESSORS_MAP = {'Auto-Rotate': 'deskew', 'Auto-Crop': 'doc_crop'}
+    AVAILABLE_PREPROCESSORS = list(PREPROCESSORS_MAP)
+    preprocessors = st.sidebar.multiselect('Select image pre-processors:', AVAILABLE_PREPROCESSORS, AVAILABLE_PREPROCESSORS[0:1])
+    
+    for i, preprocessor in enumerate(preprocessors):
+        preprocessors[i] = PREPROCESSORS_MAP[preprocessor]
+    settings['preprocessor'] = get_preprocessor(preprocessors)
     
     st.sidebar.title('About')
     st.sidebar.text('By AI4Bharat')
-    return model
+    return settings
 
 def display_ocr_output(output_path):
     ocr_output_image = st.image(os.path.relpath(output_path + '.jpg'), use_column_width=True)
@@ -63,7 +79,7 @@ def display_ocr_output(output_path):
     st.markdown(get_binary_file_downloader_html(output_path+'.jpg', 'OCR Image'), unsafe_allow_html=True)
     return
 
-def setup_ocr_runner(img: io.BytesIO, model):
+def setup_ocr_runner(img: io.BytesIO, settings):
     st.subheader('Step-2: **OCR and extract document info!**')
 
     extract_type = st.selectbox('Select extractor type:', ['Raw', 'Standard', 'LSTM (Experimental)'], index=1)
@@ -85,7 +101,8 @@ def setup_ocr_runner(img: io.BytesIO, model):
     
     progress_bar.progress(0.2)
     latest_progress.text('Status: Running OCR')
-    output_path = model.process_img(img_path, OUTPUT_FOLDER)
+    output_path = settings['model'].process_img(img_path, settings['preprocessor'], OUTPUT_FOLDER)
+    output_path = os.path.abspath(output_path)
     
     display_ocr_output(output_path)
 
@@ -93,7 +110,7 @@ def setup_ocr_runner(img: io.BytesIO, model):
         latest_progress.text('Status: OCR Complete! Running Extractor...')
         progress_bar.progress(0.8)
         
-        lang = extra_langs[0] if extra_langs else 'en'
+        lang = settings['extra_langs'][0] if settings['extra_langs'] else 'en'
         data = get_extractor().run(output_path + '.json', extract_type, doc_type, lang)
         st.json(data)
     
@@ -120,11 +137,11 @@ def setup_uploader():
     return uploaded_img
 
 def show_ui():
-    model = setup_ocr_sidebar(CONFIGS_PATH)
+    settings = setup_ocr_sidebar(CONFIGS_PATH)
     uploaded_img = setup_uploader()
     if not uploaded_img:
         return
-    setup_ocr_runner(uploaded_img, model)
+    setup_ocr_runner(uploaded_img, settings)
     return
 
 if __name__ == '__main__':
