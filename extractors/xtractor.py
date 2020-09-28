@@ -2,6 +2,7 @@ import json
 
 from .lstm_extractor import LSTM_Extractor
 from .rule_based import extract
+from .qr_extractor import extract_from_qr
 
 from .utils.transliterator import transliterate
 BILINGUAL_KEYS_FOR_XLIT = {
@@ -13,12 +14,18 @@ class Xtractor:
     def __init__(self, model_path):
         self.lstm_extractor = LSTM_Extractor(model_path)
     
-    def run(self, ocr_json_file, extract_type, doc_type, lang='en', xlit=True, write_to=None):
+    def run(self, ocr_json_file, extract_type, doc_type, lang='en', xlit=True):
 
         with open(ocr_json_file, encoding='utf-8') as f:
             input = json.load(f)
         bboxes = input['data']
-        bboxes = [bbox for bbox in bboxes if 'text' in bbox]
+        
+        # TODO: Do not run OCR if QR is successful
+        data = extract_from_qr()
+        if data:
+            return data
+        
+        bboxes = [bbox for bbox in bboxes if bbox['type']=='text']
         if not bboxes:
             return {'logs': ['OCR Failed']}
         
@@ -36,10 +43,6 @@ class Xtractor:
         
         if xlit:
             self.fill_missing_using_xlit(data, doc_type, lang)
-
-        if write_to:
-            with open(write_to, 'w', encoding='utf-8') as f:
-                json.dump(result, f, ensure_ascii=False, indent=2)
         
         return data
     
