@@ -21,8 +21,9 @@ class Xtractor:
         bboxes = input['data']
         
         # TODO: Do not run OCR if QR is successful
-        data = extract_from_qr()
+        data = extract_from_qr(doc_type, bboxes)
         if data:
+            data['logs'] = ['Extracted using QR code']
             return data
         
         bboxes = [bbox for bbox in bboxes if bbox['type']=='text']

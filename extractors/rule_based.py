@@ -1,11 +1,12 @@
 import numpy as np
 
-from .string_rules import voter_back, voter_front, pan
+from .string_rules import voter_back, voter_front, pan_old, pan_new
 
 doc_type_map = {
     'voter_back': voter_back,
     'voter_front': voter_front,
-    'pan': pan
+    'pan_old': pan_old,
+    'pan_new': pan_new
 }
 
 def get_full_string(sorted_bboxes: list, y_threshold: float = 0.023):
@@ -49,6 +50,6 @@ def extract(bboxes, h, w, doc_type, lang):
     bboxes = sort_bboxes(bboxes, w, h)
     full_str = get_full_string(bboxes)
     result = doc_type_map[doc_type].get_values(full_str, lang)
-    result['raw'] = full_str.split('\n')
+    # result['raw'] = full_str.split('\n')
     
     return result

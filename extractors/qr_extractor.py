@@ -1,22 +1,8 @@
-DOC_MAP = {
-    'pan': extract_pan,
-    'pan_new': extract_pan
-}
-
-def extract_from_qr(doc_type, bboxes):
-    if doc_type not in DOC_MAP:
-        return None
-    
-    qr_bboxes = [bbox for bbox in bboxes if bbox['type']=='qr']
-    if not qr_bboxes:
-        return None
-    
-    qr_message = qr_bboxes[0]['text']
-    return DOC_MAP[doc_type](qr_message)
-
 def extract_pan(text):
     result = {'en': {}}
     lines = text.split('\n')
+    if len(lines) < 4:
+        return None
     
     # Line 1 format:
     # नाम / Name : <NAME>
@@ -29,7 +15,7 @@ def extract_pan(text):
     # पिता का नाम / Father's Name : <NAME>
     # Note: Can also be father or mother or parent
     
-    result['en']['parent'] = lines[1].split(':')[1].strip()
+    result['en']['relation'] = lines[1].split(':')[1].strip()
     
     # Line 3 format:
     # जन्म की तारीख / Date of Birth : <DOB>
@@ -48,3 +34,19 @@ def extract_pan(text):
     result['en']['id'] = lines[3].split(':')[1].strip()
     
     return result
+
+DOC_MAP = {
+    'pan': extract_pan,
+    'pan_new': extract_pan
+}
+
+def extract_from_qr(doc_type, bboxes):
+    if doc_type not in DOC_MAP:
+        return None
+    
+    qr_bboxes = [bbox for bbox in bboxes if bbox['type']=='qr']
+    if not qr_bboxes:
+        return None
+    
+    qr_message = qr_bboxes[0]['text']
+    return DOC_MAP[doc_type](qr_message)

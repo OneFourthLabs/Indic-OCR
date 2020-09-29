@@ -8,8 +8,8 @@ import numpy as np
 import string
 
 doc_map = {
-    'pan': {
-        'classes': ['en-dob', 'ignore', 'en-name', 'en-id', 'en-parent'],
+    'pan_old': {
+        'classes': ['en-dob', 'ignore', 'en-name', 'en-id', 'en-relation'],
         'model': 'pan-model.pt',
     },
     'voter_back': {

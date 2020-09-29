@@ -1,11 +1,18 @@
+'''
+Rule-based method to extract Old PAN Card
+using the OCR'ed output string.
+
+Card format:
+https://swarajyamag.com/insta/only-half-of-issued-pan-cards-linked-to-aadhaar-despite-31-march-deadline-says-income-tax-department
+'''
+
 import re
 
 def get_values(full_str, lang='hi'):
     lines = full_str.split('\n')
     line_i, n_lines = 0, len(lines)
 
-    result = {'en': {}}
-    result['logs'] = []
+    result = {'en': {}, 'logs': []}
 
     ## -- EXTRACT ENGLISH NAME -- #
     while line_i < n_lines and not 'GOVT' in lines[line_i].upper() and not 'INDIA' in lines[line_i].upper():
@@ -23,7 +30,7 @@ def get_values(full_str, lang='hi'):
         result['logs'].append('Failed to find parent name')
         return result
     
-    result['en']['parent'] = lines[line_i]
+    result['en']['relation'] = lines[line_i]
     line_i += 1
     
     ## -- EXTRACT DOB -- #
@@ -79,7 +86,6 @@ def get_values(full_str, lang='hi'):
         
         if line_i >= n_lines or not matches:
             result['logs'].append('Unable to parse ID using regex')
-            return result
         else:
             result['en']['id'] = matches[0]
     else:
