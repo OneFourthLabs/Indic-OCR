@@ -35,9 +35,45 @@ def extract_pan(text):
     
     return result
 
+import xml.etree.ElementTree as ET
+def extract_aadhar(xml_string):
+    try:
+        data_node = ET.fromstring(xml_string)
+    except:
+        return None
+    
+    return {
+        'en': {
+            'name': data_node.attrib['name'],
+            # If DOB is present, convert YYYY-MM-DD to DD/MM/YYYY
+            'dob': '/'.join(data_node.attrib['dob'].split('-')[::-1]) if 'dob' in data_node.attrib else None,
+            'yob': data_node.attrib['yob'],
+            'gender': 'Female' if data_node.attrib['gender'] == 'F' else 'Male',
+            'relation': data_node.attrib['co'] if 'co' in data_node.attrib else None,
+
+            'address': {
+                'house': data_node.attrib['house'],
+                'street': data_node.attrib['street'],
+                'landmark': data_node.attrib['lm'],
+
+                # Village/Town/City
+                'city': data_node.attrib['vtc'],
+                'post_office': data_node.attrib['po'],
+
+                'district': data_node.attrib['dist'],
+                'sub_district': data_node.attrib['subdist'],
+
+                'state': data_node.attrib['state'],
+                'pin_code': data_node.attrib['pc'],
+            }
+        }
+    }
+
 DOC_MAP = {
     'pan': extract_pan,
-    'pan_new': extract_pan
+    'pan_new': extract_pan,
+    'aadhar': extract_aadhar,
+    'aadhar_front': extract_aadhar
 }
 
 def extract_from_qr(doc_type, bboxes):

@@ -7,7 +7,8 @@ from .qr_extractor import extract_from_qr
 from .utils.transliterator import transliterate
 BILINGUAL_KEYS_FOR_XLIT = {
     'voter_back': ['address'],
-    'voter_front': ['name', 'relation']
+    'voter_front': ['name', 'relation'],
+    'aadhar_front': ['name']
 }
 
 class Xtractor:
@@ -18,15 +19,21 @@ class Xtractor:
 
         with open(ocr_json_file, encoding='utf-8') as f:
             input = json.load(f)
-        bboxes = input['data']
         
         # TODO: Do not run OCR if QR is successful
-        data = extract_from_qr(doc_type, bboxes)
+        data = extract_from_qr(doc_type, input['data'])
         if data:
             data['logs'] = ['Extracted using QR code']
-            return data
+        else:
+            data = self.extract_from_ocr(input, extract_type, doc_type, lang)
         
-        bboxes = [bbox for bbox in bboxes if bbox['type']=='text']
+        if xlit:
+            self.fill_missing_using_xlit(data, doc_type, lang)
+        
+        return data
+    
+    def extract_from_ocr(self, input, extract_type, doc_type, lang):
+        bboxes = [bbox for bbox in input['data'] if bbox['type']=='text']
         if not bboxes:
             return {'logs': ['OCR Failed']}
         
@@ -42,9 +49,6 @@ class Xtractor:
         else:
             data = extract(bboxes, h, w, doc_type, lang)
         
-        if xlit:
-            self.fill_missing_using_xlit(data, doc_type, lang)
-        
         return data
     
     def fill_missing_using_xlit(self, result, doc_type, lang):
@@ -52,6 +56,8 @@ class Xtractor:
             return
         keys = BILINGUAL_KEYS_FOR_XLIT[doc_type]
         
+        if not lang in result:
+            result[lang] = {}
         if not 'logs' in result:
             result['logs'] = []
         

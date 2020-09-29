@@ -84,8 +84,7 @@ def setup_ocr_runner(img: io.BytesIO, settings):
 
     extract_type = st.selectbox('Select extractor type:', ['None', 'Standard', 'LSTM (Experimental)'], index=1)
     if extract_type != 'None':
-        doc_type = st.selectbox('Select document:', ['PAN Old', 'PAN New', 'Aadhar Front'], index=0)
-        # doc_type = st.selectbox('Select document:', ['PAN', 'Voter Front', 'Voter Back'], index=0)
+        doc_type = st.selectbox('Select document:', ['PAN Old', 'PAN New', 'Aadhar Front', 'Voter Front', 'Voter Back'], index=0)
         doc_type = doc_type.lower().replace(' ', '_')
     
     latest_progress = st.text('Status: Ready to process')
