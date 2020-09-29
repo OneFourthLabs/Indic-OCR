@@ -1,12 +1,13 @@
 import numpy as np
 
-from .string_rules import voter_back, voter_front, pan_old, pan_new
+from .string_rules import voter_back, voter_front, pan_old, pan_new, aadhar_front
 
 doc_type_map = {
     'voter_back': voter_back,
     'voter_front': voter_front,
     'pan_old': pan_old,
-    'pan_new': pan_new
+    'pan_new': pan_new,
+    'aadhar_front': aadhar_front
 }
 
 def get_full_string(sorted_bboxes: list, y_threshold: float = 0.023):

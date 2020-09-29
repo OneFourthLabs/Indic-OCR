@@ -82,9 +82,9 @@ def display_ocr_output(output_path):
 def setup_ocr_runner(img: io.BytesIO, settings):
     st.subheader('Step-2: **OCR and extract document info!**')
 
-    extract_type = st.selectbox('Select extractor type:', ['Raw', 'Standard', 'LSTM (Experimental)'], index=1)
-    if extract_type != 'Raw':
-        doc_type = st.selectbox('Select document:', ['PAN Old', 'PAN New'], index=0)
+    extract_type = st.selectbox('Select extractor type:', ['None', 'Standard', 'LSTM (Experimental)'], index=1)
+    if extract_type != 'None':
+        doc_type = st.selectbox('Select document:', ['PAN Old', 'PAN New', 'Aadhar Front'], index=0)
         # doc_type = st.selectbox('Select document:', ['PAN', 'Voter Front', 'Voter Back'], index=0)
         doc_type = doc_type.lower().replace(' ', '_')
     
@@ -107,7 +107,7 @@ def setup_ocr_runner(img: io.BytesIO, settings):
     
     display_ocr_output(output_path)
 
-    if extract_type != 'Raw':
+    if extract_type != 'None':
         latest_progress.text('Status: OCR Complete! Running Extractor...')
         progress_bar.progress(0.8)
         
