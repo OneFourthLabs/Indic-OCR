@@ -14,7 +14,11 @@ python run.py <config.json> <input_folder> [<output_folder> <preprocessors>]
 ```
 
 Pre-processors suppported:
-- `deskew` - To auto-rotate images
+
+Most of them are not fully reliable
+
+- `deskew` - To auto-deskew images
+- `auto_rotate` - To auto-rotate images
 - `doc_crop` - To automatically crop only document region
 - `remove_bg` - To automatically erase background from foreground
 

@@ -1,5 +1,4 @@
 import streamlit as st
-from glob import glob
 import os
 
 from streamlit_utils.widgets import *
@@ -13,6 +12,7 @@ ADDITIONAL_LANGS = ['hi', 'ta']
 
 @st.cache
 def get_configs(configs_path_pattern):
+    from glob import glob
     files = glob(configs_path_pattern)
     return[os.path.splitext(os.path.basename(file))[0] for file in files]
 
@@ -50,7 +50,7 @@ def setup_ocr_sidebar(configs_path_pattern):
     model_status.text('Model ready!')
     
     # Set image pre-processors
-    PREPROCESSORS_MAP = {'Auto-Rotate': 'deskew', 'Auto-Crop': 'doc_crop'}
+    PREPROCESSORS_MAP = {'Auto-Rotate': 'auto_rotate', 'Auto-Deskew': 'deskew', 'Auto-Crop': 'doc_crop'}
     AVAILABLE_PREPROCESSORS = list(PREPROCESSORS_MAP)
     preprocessors = st.sidebar.multiselect('Select image pre-processors:', AVAILABLE_PREPROCESSORS, AVAILABLE_PREPROCESSORS[0:1])
     
@@ -95,9 +95,6 @@ def setup_ocr_runner(img: io.BytesIO, settings):
     return
 
 def setup_uploader():
-    st.title('Indic OCR')
-    st.markdown('GUI to perform text detection and recognition')
-
     st.subheader('Step-1: **Upload your image**')
     st.set_option('deprecation.showfileUploaderEncoding', False)
     uploaded_img = st.file_uploader('', type=['jpg', 'jpeg', 'jfif'])
@@ -111,6 +108,9 @@ def setup_uploader():
     return uploaded_img
 
 def show_ui():
+    st.title('Indic OCR')
+    st.markdown('GUI to perform text detection and recognition')
+    
     settings = setup_ocr_sidebar(CONFIGS_PATH)
     uploaded_img = setup_uploader()
     if not uploaded_img:
