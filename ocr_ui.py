@@ -22,7 +22,7 @@ def get_configs(configs_path_pattern):
 def get_model(config_name, configs_path_pattern, langs=None):
     config = configs_path_pattern.replace('*', config_name)
     from indic_ocr.ocr import OCR
-    return OCR(config, langs, qr_scan=True)
+    return OCR(config, langs, qr_scan=False)
 
 @st.cache
 def get_preprocessor(preprocessors=None):
@@ -50,9 +50,9 @@ def setup_ocr_sidebar(configs_path_pattern):
     model_status.text('Model ready!')
     
     # Set image pre-processors
-    PREPROCESSORS_MAP = {'Auto-Rotate': 'auto_rotate', 'Auto-Deskew': 'deskew', 'Auto-Crop': 'doc_crop'}
+    PREPROCESSORS_MAP = {'Auto-Deskew': 'deskew', 'Auto-Rotate': 'auto_rotate', 'Auto-Crop': 'doc_crop'}
     AVAILABLE_PREPROCESSORS = list(PREPROCESSORS_MAP)
-    preprocessors = st.sidebar.multiselect('Select image pre-processors:', AVAILABLE_PREPROCESSORS, AVAILABLE_PREPROCESSORS[0:1])
+    preprocessors = st.sidebar.multiselect('Select image pre-processors:', AVAILABLE_PREPROCESSORS, AVAILABLE_PREPROCESSORS[0:2])
     
     for i, preprocessor in enumerate(preprocessors):
         preprocessors[i] = PREPROCESSORS_MAP[preprocessor]
