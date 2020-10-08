@@ -82,7 +82,7 @@ def display_ocr_output(output_path):
 def setup_ocr_runner(img: io.BytesIO, settings):
     st.subheader('Step-2: **OCR and extract document info!**')
 
-    extract_type = st.selectbox('Select extractor type:', ['None', 'Standard', 'LSTM (Experimental)'], index=1)
+    extract_type = st.selectbox('Select extractor type:', ['None', 'Standard'], index=1) #, 'LSTM (Experimental)'
     if extract_type != 'None':
         doc_type = st.selectbox('Select document:', ['PAN Old', 'PAN New', 'Aadhar Front', 'Voter Front', 'Voter Back'], index=0)
         doc_type = doc_type.lower().replace(' ', '_')
@@ -112,6 +112,8 @@ def setup_ocr_runner(img: io.BytesIO, settings):
         
         lang = settings['extra_langs'][0] if settings['extra_langs'] else 'en'
         data = get_extractor().run(output_path + '.json', extract_type, doc_type, lang)
+        if 'raw' in data:
+            del data['raw']
         st.json(data)
     
     latest_progress.text('Status: Extraction Complete!')
@@ -121,8 +123,8 @@ def setup_ocr_runner(img: io.BytesIO, settings):
     return
 
 def setup_uploader():
-    st.title('Indic OCR')
-    st.markdown('GUI to perform text detection and recognition')
+    st.title('Indian DocXtract - AI4Bharat')
+    st.markdown('GUI to perform OCR & Extraction')
 
     st.subheader('Step-1: **Upload your image**')
     st.set_option('deprecation.showfileUploaderEncoding', False)

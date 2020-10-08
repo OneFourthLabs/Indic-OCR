@@ -225,13 +225,17 @@ def parse_relation_english_name(line_i, lines, n_lines, result):
     # Allow only ASCII chars
     result['en']['relation'] = ''.join([c for c in result['en']['relation'] if c in ALLOWED_ENGLISH_CHARS]).strip()
 
+    # Sometimes, we will have to clear out the 's' from "Father s <NAME>"
+    if result['en']['relation'].startswith('s '):
+        result['en']['relation'] = result['en']['relation'][2:]
+
     if not result['en']['relation']:
         result['logs'].append('Corrupt Relation English name')
 
     return line_i
 
 def get_values(full_str, lang):
-    lines = full_str.split('\n')
+    lines = full_str.replace('$', 'S').split('\n')
     line_i, n_lines = 0, len(lines)
 
     result = {'en': {}, lang: {}}

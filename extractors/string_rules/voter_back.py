@@ -44,19 +44,34 @@ def parse_gender(lang, line_i, lines, n_lines, result):
 def parse_dob(lang, line_i, lines, n_lines, result):
     ## -- EXTRACT DOB -- ##
     backtrack_line_i = line_i
+
+    # Try finding the exact regex pattern
+    # Note: Ensure there is no other string in the doc in DD/MM/YYYY format
+    dob_regex = r'(\d+[/|]\d+[/|]\d+)'
+    while line_i < n_lines and not re.findall(dob_regex, lines[line_i]):
+        line_i += 1
+    
+    if line_i >= n_lines:
+        result['logs'].append('Failed to find DOB using regex')
+        line_i = backtrack_line_i
+    else:
+        matches = re.findall(dob_regex, lines[line_i])
+        result['en']['dob'] = matches[0].replace('|', '/')
+        return line_i+1
+    
+    # Try finding using the key
     while line_i < n_lines and not 'dob' in lines[line_i].lower() and not 'age' in lines[line_i].lower() and not 'yrs' in lines[line_i].lower():
         line_i += 1
     if line_i >= n_lines:
         result['logs'].append('Failed to find DOB')
         return backtrack_line_i
     
-    matches = re.findall(r'(\d+/\d+/\d+)', lines[line_i])
+    matches = re.findall(dob_regex, lines[line_i])
     if not matches:
         result['logs'].append('DOB in broken format')
         result['en']['dob'] = lines[line_i].lower().replace('age', '').replace('dob', '').strip()
     else:
-        dob_str = matches[0]
-        result['en']['dob'] = dob_str
+        result['en']['dob'] = matches[0].replace('|', '/')
     line_i += 1
     return line_i
 

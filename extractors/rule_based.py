@@ -51,6 +51,6 @@ def extract(bboxes, h, w, doc_type, lang):
     bboxes = sort_bboxes(bboxes, w, h)
     full_str = get_full_string(bboxes)
     result = doc_type_map[doc_type].get_values(full_str, lang)
-    # result['raw'] = full_str.split('\n')
+    result['raw'] = full_str.split('\n')
     
     return result

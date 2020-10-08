@@ -11,11 +11,17 @@ BILINGUAL_KEYS_FOR_XLIT = {
     'aadhar_front': ['name']
 }
 
+NUMERALS = {
+    'en': '0123456789',
+    'hi': '०१२३४५६७८९',
+    'ta': '௦௧௨௩௪௫௬௭௮௯'
+}
+
 class Xtractor:
     def __init__(self, model_path):
         self.lstm_extractor = LSTM_Extractor(model_path)
     
-    def run(self, ocr_json_file, extract_type, doc_type, lang='en', xlit=True):
+    def run(self, ocr_json_file, extract_type, doc_type, lang='en'):
 
         with open(ocr_json_file, encoding='utf-8') as f:
             input = json.load(f)
@@ -27,9 +33,7 @@ class Xtractor:
         else:
             data = self.extract_from_ocr(input, extract_type, doc_type, lang)
         
-        if xlit:
-            self.fill_missing_using_xlit(data, doc_type, lang)
-        
+        self.post_process(data, doc_type, lang)
         return data
     
     def extract_from_ocr(self, input, extract_type, doc_type, lang):
@@ -50,6 +54,30 @@ class Xtractor:
             data = extract(bboxes, h, w, doc_type, lang)
         
         return data
+    
+    def post_process(self, data, doc_type, lang, xlit=True):
+
+        if xlit:
+            self.fill_missing_using_xlit(data, doc_type, lang)
+
+        # Sometimes, OCR confuses English numerals with Indic numerals
+        # due to errors in training data. Fix it in-place.
+        self.replace_numerals(data, lang)
+    
+    def replace_numerals(self, data, lang):
+        if not 'en' in data or lang == 'en':
+            return
+        
+        if lang in NUMERALS:
+            lang_numerals = NUMERALS[lang]
+            for key, value in data['en'].items():
+                for i, numeral in enumerate(lang_numerals):
+                    if not numeral in value:
+                        continue
+                    value = value.replace(numeral, str(i))
+                data['en'][key] = value
+        
+        return
     
     def fill_missing_using_xlit(self, result, doc_type, lang):
         if doc_type not in BILINGUAL_KEYS_FOR_XLIT:

@@ -25,7 +25,7 @@ def parse_id(line_i, lines, n_lines, result):
 
     # Hoping the ID will be in the next line
     line_i += 1
-    result['en']['id'] = lines[line_i]
+    result['en']['id'] = lines[line_i].replace(' ', '')
     backtrack_line_i = line_i
 
     # Parse out the ID pattern
