@@ -1,4 +1,5 @@
 import re
+from .str_utils import remove_non_ascii, remove_english_chars
 
 key_map = {
     'ta': {
@@ -10,10 +11,6 @@ key_map = {
         'relation': 'पिता|माता|पति का नाम'
     }
 }
-
-import string
-ALLOWED_ENGLISH_CHARS = string.digits + ' ' + string.ascii_letters + '.,?/_-:;' #string.punctuation
-DISALLOWED_REGIONAL_CHARS = string.ascii_letters + ''.join([c for c in string.punctuation if c not in '.,?/_-:;'])
 
 def parse_id(line_i, lines, n_lines, result):
     # Search for header: "Elector Photo Identity Card"
@@ -87,8 +84,7 @@ def parse_regional_name(lang, line_i, lines, n_lines, result):
         name = ' '.join(name.split()[1:])
         result[lang]['name'] = name
     
-    # Remove English chars
-    result[lang]['name'] = ''.join([c for c in result[lang]['name'] if c not in DISALLOWED_REGIONAL_CHARS]).strip()
+    result[lang]['name'] = remove_english_chars(result[lang]['name'])
 
     if not result[lang]['name']:
         result['logs'].append('Corrupt Regional name')
@@ -126,8 +122,7 @@ def parse_english_name(line_i, lines, n_lines, result):
         name = ' '.join(name.split()[1:])
         result['en']['name'] = name
     
-    # Allow only ASCII chars
-    result['en']['name'] = ''.join([c for c in result['en']['name'] if c in ALLOWED_ENGLISH_CHARS]).strip()
+    result['en']['name'] = remove_non_ascii(result['en']['name'])
 
     if not result['en']['name']:
         result['logs'].append('Corrupt English name')
@@ -176,8 +171,7 @@ def parse_relation_regional_name(lang, line_i, lines, n_lines, result):
             name = ' '.join(name.split()[1:])
             result[lang]['relation'] = name
     
-    # Remove English chars
-    result[lang]['relation'] = ''.join([c for c in result[lang]['relation'] if c not in DISALLOWED_REGIONAL_CHARS]).strip()
+    result[lang]['relation'] = remove_english_chars(result[lang]['relation'])
 
     if not result[lang]['relation']:
         result['logs'].append('Corrupt Relation regional name')
@@ -222,8 +216,7 @@ def parse_relation_english_name(line_i, lines, n_lines, result):
             result['en']['relation'] += ' ' + last_name
             line_i += 1
 
-    # Allow only ASCII chars
-    result['en']['relation'] = ''.join([c for c in result['en']['relation'] if c in ALLOWED_ENGLISH_CHARS]).strip()
+    result['en']['relation'] = remove_non_ascii(result['en']['relation'])
 
     # Sometimes, we will have to clear out the 's' from "Father s <NAME>"
     if result['en']['relation'].startswith('s '):

@@ -7,6 +7,9 @@ https://www.pancardapp.com/blog/what-is-pan-card/
 '''
 
 import re
+from .str_utils import remove_non_ascii
+
+RELATION_KEYS = 'parent|father|mother|husband|पिता|माता|पति'
 
 def parse_id(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
@@ -15,16 +18,36 @@ def parse_id(line_i, lines, n_lines, result):
     while line_i < n_lines \
         and 'permanent' not in lines[line_i].lower() \
         and 'account' not in lines[line_i].lower() \
-        and 'number' not in lines[line_i].lower():
+        and 'number' not in lines[line_i].lower() \
+        and 'card' not in lines[line_i].lower() :
 
         line_i += 1
     
-    if line_i >= n_lines:
+    if line_i < n_lines:
+        # Hoping the ID will be in the next line
+        line_i += 1
+    else:
         result['logs'].append('Unable to find PAN header')
-        return backtrack_line_i
 
-    # Hoping the ID will be in the next line
-    line_i += 1
+        # Try to find 'INCOME TAX DEPARTMENT' / 'GOVT. OF INDIA'
+        line_i = backtrack_line_i
+
+        while line_i < n_lines \
+            and 'income' not in lines[line_i].lower() \
+            and 'tax' not in lines[line_i].lower() \
+            and 'department' not in lines[line_i].lower() \
+            and 'govt' not in lines[line_i].lower() \
+            and 'india' not in lines[line_i].lower():
+
+            line_i += 1
+        
+        if line_i >= n_lines:
+            return backtrack_line_i
+        else:
+            # Hoping the ID will be 3 lines below the "ITD GoI" line
+            result['logs'].append('WARN: ID MAYbe wrong')
+            line_i += 3
+    
     result['en']['id'] = lines[line_i].replace(' ', '')
     backtrack_line_i = line_i
 
@@ -49,34 +72,41 @@ def parse_id(line_i, lines, n_lines, result):
 
 def parse_name(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
-    # Search for a word in "नाम / Name",
-    # belown which we can find the name
-
+    # Search for a word in "नाम / Name", belown which we can find the name
     # Also stop searching when you reach the next line (parent's name)
-    disallowed_words = 'parent|father|mother|husband|पिता|माता|पति'
     
     while line_i < n_lines \
         and 'name' not in lines[line_i].lower() \
         and 'नाम' not in lines[line_i].lower() \
-        and not re.findall(disallowed_words, lines[line_i].lower()):
+        and not re.findall(RELATION_KEYS, lines[line_i].lower()):
         
         line_i += 1
     
-    if line_i >= n_lines or re.findall(disallowed_words, lines[line_i].lower()):
+    if line_i >= n_lines:
         result['logs'].append('Unable to find PAN holder name')
         return backtrack_line_i
+    elif re.findall(RELATION_KEYS, lines[line_i].lower()):
+        # It means that though we have failed to find the key 'name',
+        # we have found the next key. So hope name is present in prev. line
+        result['logs'].append('Warning: Name MAYbe wrong')
+        line_i -= 1
+        while line_i >= 0 and not remove_non_ascii(lines[line_i]):
+            line_i -= 1
+        
+        if line_i < 0:
+            return backtrack_line_i
+    else:
+        # Hoping the name will be in the next line
+        line_i += 1
     
-    # Hoping the name will be in the next line
-    line_i += 1
     result['en']['name'] = lines[line_i]
     return line_i
 
 def parse_relation_name(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
-    keys = 'parent|father|mother|husband|पिता|माता|पति'
 
     while line_i < n_lines \
-        and not re.findall(keys, lines[line_i].lower()):
+        and not re.findall(RELATION_KEYS, lines[line_i].lower()):
 
         line_i += 1
     
@@ -110,7 +140,7 @@ def parse_dob(line_i, lines, n_lines, result):
     
     # Parse using pattern
     dob_regex = r'(\d+/\d+/\d+)'
-    matches = re.findall(dob_regex, result['en']['dob'])
+    matches = re.findall(dob_regex, lines[line_i])
     if matches:
         result['en']['dob'] = matches[0]
     else:
