@@ -1,5 +1,4 @@
 import streamlit as st
-from glob import glob
 import os
 
 from streamlit_utils.widgets import *
@@ -19,6 +18,7 @@ def get_extractor():
 
 @st.cache
 def get_configs(configs_path_pattern):
+    from glob import glob
     files = glob(configs_path_pattern)
     return[os.path.splitext(os.path.basename(file))[0] for file in files]
 
@@ -61,9 +61,9 @@ def setup_ocr_sidebar(configs_path_pattern):
     model_status.text('Model ready!')
     
     # Set image pre-processors
-    PREPROCESSORS_MAP = {'Auto-Rotate': 'deskew', 'Auto-Crop': 'doc_crop'}
+    PREPROCESSORS_MAP = {'Auto-Deskew': 'deskew', 'Auto-Rotate': 'auto_rotate', 'Auto-Crop': 'doc_crop'}
     AVAILABLE_PREPROCESSORS = list(PREPROCESSORS_MAP)
-    preprocessors = st.sidebar.multiselect('Select image pre-processors:', AVAILABLE_PREPROCESSORS, AVAILABLE_PREPROCESSORS[0:1])
+    preprocessors = st.sidebar.multiselect('Select image pre-processors:', AVAILABLE_PREPROCESSORS, AVAILABLE_PREPROCESSORS[0:2])
     
     for i, preprocessor in enumerate(preprocessors):
         preprocessors[i] = PREPROCESSORS_MAP[preprocessor]
@@ -123,9 +123,6 @@ def setup_ocr_runner(img: io.BytesIO, settings):
     return
 
 def setup_uploader():
-    st.title('Indian DocXtract - AI4Bharat')
-    st.markdown('GUI to perform OCR & Extraction')
-
     st.subheader('Step-1: **Upload your image**')
     st.set_option('deprecation.showfileUploaderEncoding', False)
     uploaded_img = st.file_uploader('', type=['jpg', 'jpeg', 'jfif'])
@@ -139,6 +136,9 @@ def setup_uploader():
     return uploaded_img
 
 def show_ui():
+    st.title('Indian DocXtract - AI4Bharat')
+    st.markdown('GUI to perform OCR & Extraction')
+    
     settings = setup_ocr_sidebar(CONFIGS_PATH)
     uploaded_img = setup_uploader()
     if not uploaded_img:
@@ -147,5 +147,5 @@ def show_ui():
     return
 
 if __name__ == '__main__':
-    production_mode('Indian DocXtract - AI4Bharat')    
+    production_mode('AutoID - AI4Bharat')    
     show_ui()

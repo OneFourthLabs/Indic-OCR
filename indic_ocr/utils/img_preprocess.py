@@ -10,7 +10,9 @@ class PreProcessor:
         self.processors = []
         for processor_name in processors_list:
             processor = None
-            if processor_name == 'deskew':
+            if processor_name == 'auto_rotate':
+                processor = AutoRotate()
+            elif processor_name == 'deskew':
                 processor = AutoDeskewer()
             elif processor_name == 'remove_bg':
                 processor = BG_Remover()
@@ -86,3 +88,67 @@ class AutoDeskewer(PreProcessorBase):
         '''
         angle = AutoDeskewer.determine_skew(rgb2gray(img))
         return rotate(img, angle, resize=True) * 255
+
+import re
+import tempfile
+from uuid import uuid4
+from .misc import run_command
+class AutoRotate2(PreProcessorBase):
+    '''
+    Inspiration:
+    https://stackoverflow.com/questions/56139251
+    '''
+    
+    def get_angle(self, img, min_chars_to_try=100):
+        
+        # Write the image temporarily
+        tmp_file = os.path.join(tempfile.gettempdir(), uuid4().hex + '.jpg')
+        cv2.imwrite(tmp_file, img)
+        
+        output = run_command('tesseract %s - -l eng --psm 0 -c min_characters_to_try=%d' % (tmp_file, min_chars_to_try))
+        matches = re.findall('Rotate: \\d+', output)
+        # TODO: Also use 'Orientation confidence:'
+        if matches:
+            # Rotate by this angle counter-clockwise
+            angle = matches[0].replace('Rotate: ', '').strip()
+            angle = int(angle)
+        else:
+            angle = 0
+        
+        try: # Delete the temporary image
+            os.remove(tmp_file)
+        except OSError:
+            pass
+            
+        return angle
+    
+    def process(self, img):
+        angle = self.get_angle(img)
+        # if angle:
+        print(angle)
+        if angle == 90 or angle == 270:
+            return rotate(img, angle, resize=True) * 255
+        else:
+            return img
+
+from pytesseract import image_to_osd
+class AutoRotate(PreProcessorBase):
+    '''
+    TODO: Use this directly as soon as this issue is fixed:
+    https://github.com/madmaze/pytesseract/issues/174
+    '''
+    
+    def __init__(self, min_confidence=1.0):
+        self.min_confidence = min_confidence
+    
+    def process(self, img):
+        output = image_to_osd(img, output_type='dict') #, lang='eng'
+        print(output)
+        if 'orientation' in output and output['orientation'] != 0 and output['orientation_conf'] >= self.min_confidence:
+            # angle = (360 - output['rotate']) % 360
+            angle = output['orientation']
+            # Rotate counter-clockwise by this angle.
+            return rotate(img, angle, resize=True) * 255
+        else:
+            return img
+        return self.rotate(img)
