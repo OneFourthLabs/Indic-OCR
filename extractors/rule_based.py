@@ -1,12 +1,13 @@
 import numpy as np
 
-from .string_rules import voter_back, voter_front, pan_old, pan_new, aadhar_front
+from .string_rules import voter_back, voter_front, pan_old, pan_new, pan, aadhar_front
 
 doc_type_map = {
     'voter_back': voter_back,
     'voter_front': voter_front,
     'pan_old': pan_old,
     'pan_new': pan_new,
+    'pan': pan,
     'aadhar_front': aadhar_front
 }
 

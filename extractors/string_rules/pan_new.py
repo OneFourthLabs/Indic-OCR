@@ -10,6 +10,7 @@ import re
 from .str_utils import remove_non_ascii
 
 RELATION_KEYS = 'parent|father|mother|husband|पिता|माता|पति'
+DOB_KEYS = 'date|birth|जन्म'
 
 def parse_id(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
@@ -47,6 +48,8 @@ def parse_id(line_i, lines, n_lines, result):
             # Hoping the ID will be 3 lines below the "ITD GoI" line
             result['logs'].append('WARN: ID MAYbe wrong')
             line_i += 3
+            if line_i >= n_lines:
+                return backtrack_line_i
     
     result['en']['id'] = lines[line_i].replace(' ', '')
     backtrack_line_i = line_i
@@ -139,7 +142,7 @@ def parse_dob(line_i, lines, n_lines, result):
         result['en']['dob'] = lines[line_i]
     
     # Parse using pattern
-    dob_regex = r'(\d+/\d+/\d+)'
+    dob_regex = r'(\d+[/-]\d+[/-]\d+)'
     matches = re.findall(dob_regex, lines[line_i])
     if matches:
         result['en']['dob'] = matches[0]

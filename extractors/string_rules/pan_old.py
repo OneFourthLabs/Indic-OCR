@@ -8,19 +8,16 @@ https://swarajyamag.com/insta/only-half-of-issued-pan-cards-linked-to-aadhaar-de
 
 import re
 
-def get_values(full_str, lang='hi'):
-    lines = full_str.split('\n')
-    line_i, n_lines = 0, len(lines)
-
-    result = {'en': {}, 'logs': []}
-
+def parse_names(line_i, lines, n_lines, result):
+    backtrack_line_i = line_i
+    
     ## -- EXTRACT ENGLISH NAME -- #
     while line_i < n_lines and not 'GOVT' in lines[line_i].upper() and not 'INDIA' in lines[line_i].upper():
         line_i += 1
     line_i += 1
     if line_i >= n_lines:
         result['logs'].append('Failed to find name')
-        return result
+        return backtrack_line_i
     
     result['en']['name'] = lines[line_i]
     line_i += 1
@@ -28,15 +25,17 @@ def get_values(full_str, lang='hi'):
     ## -- EXTRACT PARENT NAME -- #
     if line_i >= n_lines:
         result['logs'].append('Failed to find parent name')
-        return result
+        return line_i-1
     
     result['en']['relation'] = lines[line_i]
     line_i += 1
-    
+    return line_i
+
+def parse_dob(line_i, lines, n_lines, result):
     ## -- EXTRACT DOB -- #
     if line_i >= n_lines:
         result['logs'].append('Failed to find DOB')
-        return result
+        return line_i
     
     result['en']['dob'] = lines[line_i]
     # Sometimes DOB can be corrupt, also try checking for exact results
@@ -54,16 +53,19 @@ def get_values(full_str, lang='hi'):
         
         if tmp_line_i >= n_lines or not matches:
             result['logs'].append('Exact DOB not matched')
-        else:
-            line_i = tmp_line_i
-            result['en']['dob'] = matches[0]
+            return line_i
+        
+        line_i = tmp_line_i
+        result['en']['dob'] = matches[0]
 
     line_i += 1
-    
+    return line_i
+
+def parse_id(line_i, lines, n_lines, result):
     ## -- EXTRACT ID -- #
     if line_i >= n_lines:
         result['logs'].append('Failed to find ID')
-        return result
+        return line_i
     
     backtrack_line_i = line_i
     # Search for parts of 'PERMANENT ACCOUNT NUMBER'
@@ -92,5 +94,16 @@ def get_values(full_str, lang='hi'):
         result['en']['id'] = lines[line_i]
     
     line_i += 1
+    return line_i
+
+def get_values(full_str, lang='hi'):
+    lines = full_str.split('\n')
+    line_i, n_lines = 0, len(lines)
+
+    result = {'en': {}, 'logs': []}
+    
+    line_i = parse_names(line_i, lines, n_lines, result)
+    line_i = parse_dob(line_i, lines, n_lines, result)
+    line_i = parse_id(line_i, lines, n_lines, result)
     
     return result
