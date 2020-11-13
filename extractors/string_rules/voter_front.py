@@ -228,7 +228,7 @@ def parse_relation_english_name(line_i, lines, n_lines, result):
     return line_i
 
 def get_values(full_str, lang):
-    lines = full_str.replace('$', 'S').split('\n')
+    lines = full_str.split('\n')
     line_i, n_lines = 0, len(lines)
 
     result = {'en': {}, lang: {}}

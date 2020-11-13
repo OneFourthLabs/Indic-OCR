@@ -3,6 +3,7 @@ import json
 from .lstm_extractor import LSTM_Extractor
 from .rule_based import extract
 from .qr_extractor import extract_from_qr
+from .string_rules.str_utils import fix_date, standardize_numerals
 
 from .utils.transliterator import transliterate
 BILINGUAL_KEYS_FOR_XLIT = {
@@ -11,15 +12,12 @@ BILINGUAL_KEYS_FOR_XLIT = {
     'aadhar_front': ['name']
 }
 
-NUMERALS = {
-    'en': '0123456789',
-    'hi': '०१२३४५६७८९',
-    'ta': '௦௧௨௩௪௫௬௭௮௯'
-}
+DATE_KEYS = ['dob', 'doi']
 
 class Xtractor:
-    def __init__(self, model_path):
-        self.lstm_extractor = LSTM_Extractor(model_path)
+    def __init__(self, model_path=None):
+        if model_path:
+            self.lstm_extractor = LSTM_Extractor(model_path)
     
     def run(self, ocr_json_file, extract_type, doc_type, lang='en'):
 
@@ -59,23 +57,28 @@ class Xtractor:
 
         if xlit:
             self.fill_missing_using_xlit(data, doc_type, lang)
+        # self.replace_numerals(data, lang)
+        self.fix_dates(data)
 
+    def fix_dates(self, data):
         # Sometimes, OCR confuses English numerals with Indic numerals
         # due to errors in training data. Fix it in-place.
-        self.replace_numerals(data, lang)
+        if not 'en' in data:
+            return
+        
+        data = data['en']
+        for key in DATE_KEYS:
+            if key in data:
+                data[key] = fix_date(data[key])
+        
+        return
     
     def replace_numerals(self, data, lang):
         if not 'en' in data or lang == 'en':
             return
         
-        if lang in NUMERALS:
-            lang_numerals = NUMERALS[lang]
-            for key, value in data['en'].items():
-                for i, numeral in enumerate(lang_numerals):
-                    if not numeral in value:
-                        continue
-                    value = value.replace(numeral, str(i))
-                data['en'][key] = value
+        for key, value in data['en'].items():
+            data['en'][key] = standardize_numerals(value)
         
         return
     

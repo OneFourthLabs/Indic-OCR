@@ -4,24 +4,27 @@ latest PAN card using full output string from OCR.
 
 Card format:
 https://www.pancardapp.com/blog/what-is-pan-card/
+
+TODO: Support Business e-PAN format:
+https://ibb.co/TbYWSnD
 '''
 
 import re
-from .str_utils import remove_non_ascii
+from .str_utils import remove_non_ascii, remove_non_letters, remove_non_numerals
 
-RELATION_KEYS = 'parent|father|mother|husband|पिता|माता|पति'
-DOB_KEYS = 'date|birth|जन्म'
+RELATION_KEYS = 'father|mother|husband|पिता|माता|पति'
+GOV_HEADER_KEYS = 'income|tax|department|govt|india'
+NAME_KEYS = 'name|नाम'
+PAN_KEYS = 'permanent|account|number|card'
+PAN_HINDI_KEYS = 'स्थायी|लेखा|संख्या|कार्ड'
+DOB_KEYS = 'date|birth|जन्म|तारीख'
+DOB_REGEX = r'(\d+[|/-]\d+.?\d\d\d+)'
 
 def parse_id(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
     # Search for a word in "Permanent Account Number Card",
     # belown which we can find the ID
-    while line_i < n_lines \
-        and 'permanent' not in lines[line_i].lower() \
-        and 'account' not in lines[line_i].lower() \
-        and 'number' not in lines[line_i].lower() \
-        and 'card' not in lines[line_i].lower() :
-
+    while line_i < n_lines and not re.findall(PAN_KEYS, lines[line_i].lower()):
         line_i += 1
     
     if line_i < n_lines:
@@ -33,23 +36,29 @@ def parse_id(line_i, lines, n_lines, result):
         # Try to find 'INCOME TAX DEPARTMENT' / 'GOVT. OF INDIA'
         line_i = backtrack_line_i
 
-        while line_i < n_lines \
-            and 'income' not in lines[line_i].lower() \
-            and 'tax' not in lines[line_i].lower() \
-            and 'department' not in lines[line_i].lower() \
-            and 'govt' not in lines[line_i].lower() \
-            and 'india' not in lines[line_i].lower():
-
+        while line_i < n_lines and not re.findall(GOV_HEADER_KEYS, lines[line_i].lower()):
             line_i += 1
         
         if line_i >= n_lines:
-            return backtrack_line_i
+            # Try to find Hindi PAN header
+            line_i = backtrack_line_i
+            while line_i < n_lines and not re.findall(PAN_HINDI_KEYS, lines[line_i].lower()):
+                line_i += 1
+            
+            if line_i >= n_lines:
+                return backtrack_line_i
+            else:
+                # Hoping the ID will be 2 lines below the "Sthayi Lekha" line
+                line_i += 2
+                if line_i >= n_lines:
+                    return backtrack_line_i
+                result['logs'].append('WARN: ID MAYbe wrong')
         else:
             # Hoping the ID will be 3 lines below the "ITD GoI" line
-            result['logs'].append('WARN: ID MAYbe wrong')
             line_i += 3
             if line_i >= n_lines:
                 return backtrack_line_i
+            result['logs'].append('WARN: ID MAYbe wrong')
     
     result['en']['id'] = lines[line_i].replace(' ', '')
     backtrack_line_i = line_i
@@ -79,8 +88,7 @@ def parse_name(line_i, lines, n_lines, result):
     # Also stop searching when you reach the next line (parent's name)
     
     while line_i < n_lines \
-        and 'name' not in lines[line_i].lower() \
-        and 'नाम' not in lines[line_i].lower() \
+        and not re.findall(NAME_KEYS, lines[line_i].lower()) \
         and not re.findall(RELATION_KEYS, lines[line_i].lower()):
         
         line_i += 1
@@ -103,7 +111,7 @@ def parse_name(line_i, lines, n_lines, result):
         line_i += 1
     
     result['en']['name'] = lines[line_i]
-    return line_i
+    return line_i+1
 
 def parse_relation_name(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
@@ -114,8 +122,14 @@ def parse_relation_name(line_i, lines, n_lines, result):
         line_i += 1
     
     if line_i >= n_lines:
-        result['logs'].append('Unable to find relation name')
-        return backtrack_line_i
+        # Try to find based on 'name'
+        if 'name' in result['en'] and re.findall(NAME_KEYS, lines[backtrack_line_i].lower()):
+            # Hoping something like 'father' is corrupt, but 'name' is not
+            line_i = backtrack_line_i
+            result['logs'].append('Warning: Relation name MAYbe wrong')
+        else:
+            result['logs'].append('Unable to find relation name')
+            return backtrack_line_i
     
     # Hoping the name will be in the next line
     line_i += 1
@@ -125,25 +139,24 @@ def parse_relation_name(line_i, lines, n_lines, result):
 def parse_dob(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
     # Search for "जन्म की तारीख / Date of Birth"
-    # But the DoB key can be in next line, so better search for that alone
+    while line_i < n_lines and not re.findall(DOB_KEYS, lines[line_i].lower()):
+        line_i += 1
+    line_i += 1
     
-    while line_i < n_lines \
-        and 'date' not in lines[line_i].lower() \
-        and 'birth' not in lines[line_i].lower():
-
+    # Sometimes, the multilingual DoB can be in 2 lines.
+    # So ensure that's skipped if any
+    while line_i < n_lines and re.findall(DOB_KEYS, lines[line_i].lower()):
         line_i += 1
     
     if line_i >= n_lines:
         result['logs'].append('Unable to find DoB key')
         line_i = backtrack_line_i
     else:
-        # Hoping it will be there in next line
-        line_i += 1
+        # Hoping it will be there in this line
         result['en']['dob'] = lines[line_i]
     
     # Parse using pattern
-    dob_regex = r'(\d+[/-]\d+[/-]\d+)'
-    matches = re.findall(dob_regex, lines[line_i])
+    matches = re.findall(DOB_REGEX, lines[line_i])
     if matches:
         result['en']['dob'] = matches[0]
     else:
@@ -152,15 +165,43 @@ def parse_dob(line_i, lines, n_lines, result):
         while not matches:
             tmp_line_i += 1
             if tmp_line_i >= n_lines: break
-            matches = re.findall(dob_regex, lines[tmp_line_i])
+            matches = re.findall(DOB_REGEX, lines[tmp_line_i])
         
         if tmp_line_i >= n_lines or not matches:
             result['logs'].append('Exact DOB not matched')
         else:
             result['en']['dob'] = matches[0]
-            line_i = tmp_line_i + 1
+            line_i = tmp_line_i
     
-    return line_i
+    # Patch: If we had failed to parent's name, try now
+    if 'dob' in result['en'] and 'relation' not in result['en']:
+        name = remove_non_ascii(lines[line_i-2]).strip()
+        if not re.findall(DOB_KEYS, name.lower()) and len(remove_non_letters(name)) > 4:
+            result['en']['relation'] = name
+            result['logs'].append('Relation name MAYbe wrong')
+            if 'name' not in result['en'] or name == result['en']['name'].strip():
+                # In-case we wrongly or didn't parse name, try to fix that too
+                if 'name' in result['en']:
+                    del result['en']['name']
+                
+                if line_i-4 > 0:
+                    name = remove_non_ascii(lines[line_i-4]).strip()
+                    if len(remove_non_letters(name)) > 4:
+                        result['en']['name'] = name
+                        if 'id' in result['en'] and name == result['en']['id'].strip():
+                            # If in case we went too far
+                            del result['en']['name']
+                        else:
+                            result['logs'].append('Name MAYbe wrong')
+    
+    # Fix DoB
+    if 'dob' in result['en'] and len(remove_non_numerals(result['en']['dob'])) < 6:
+        del result['en']['dob']
+        # Find if it's broken but present in next line
+        if line_i+1 < n_lines and len(remove_non_numerals(lines[line_i+1])) > 5:
+            result['en']['dob'] = lines[line_i+1]
+    
+    return line_i+1
 
 def get_values(full_str, lang='hi'):
     lines = full_str.split('\n')

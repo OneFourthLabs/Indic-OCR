@@ -1,6 +1,7 @@
 import numpy as np
 
 from .string_rules import voter_back, voter_front, pan_old, pan_new, pan, aadhar_front
+from .string_rules.str_utils import standardize_numerals
 
 doc_type_map = {
     'voter_back': voter_back,
@@ -16,6 +17,16 @@ def get_full_string(sorted_bboxes: list, y_threshold: float = 0.023):
     last_h = sorted_bboxes[0]['points'][0][1]
     for bbox in sorted_bboxes:
         points = np.array(bbox['points'])
+        # Skip boxes with H > W
+        if 'width' not in bbox:
+            bbox['width'] = abs((points[1][0]+points[2][0])/2 - (points[0][0]+points[3][0])/2)
+        if 'height' not in bbox:
+            bbox['height'] = abs((points[3][1]+points[2][1])/2 - (points[0][1]+points[1][1])/2)
+        
+        if bbox['height'] > bbox['width']:
+            continue
+        
+        # Decide if same line or new line
         y = bbox['y_mid']
         if abs(last_h-y) > y_threshold:
             full_str += '\n'
@@ -50,7 +61,8 @@ def sort_bboxes(bboxes: list, img_width, img_height, y_threshold=0.023):
 def extract(bboxes, h, w, doc_type, lang):
     
     bboxes = sort_bboxes(bboxes, w, h)
-    full_str = get_full_string(bboxes)
+    full_str = get_full_string(bboxes).replace('$', 'S')
+    full_str = standardize_numerals(full_str, lang)
     result = doc_type_map[doc_type].get_values(full_str, lang)
     result['raw'] = full_str.split('\n')
     

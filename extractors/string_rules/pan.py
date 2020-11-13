@@ -10,7 +10,10 @@ import re
 
 def get_values(full_str, lang='hi'):
     test_str = full_str.lower()
-    if re.findall(pan_new.RELATION_KEYS, test_str) or re.findall(pan_new.DOB_KEYS, test_str):
+    if re.findall(pan_new.RELATION_KEYS, test_str) or re.findall(pan_new.PAN_HINDI_KEYS, test_str) or re.findall(pan_new.DOB_KEYS, test_str) \
+        or 'name' in test_str or re.findall(r' card\s+', test_str) or 'हस्ताक्षर' in test_str \
+        or re.findall('\d\d-\d\d-\d\d\d\d', test_str) or 'commissioner' in test_str: # Very old format
+        
         return pan_new.get_values(full_str, lang)
     else:
         return pan_old.get_values(full_str, lang)
