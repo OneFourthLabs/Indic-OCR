@@ -54,3 +54,23 @@ Parameters:
 1. Run `streamlit run ocr_ui.py --server.port 80`
 
 It should automatically open the UI in your browser.
+
+## Running API Server
+
+To host the OCR as an API.
+
+Development mode:
+```
+uvicorn api_server:app --host 0.0.0.0 --reload
+```
+
+Visit http://localhost:8000/docs for API documentation.
+
+Example - Testing the API using Python:
+
+```py
+payload = {'additional_langs': ['hi']}
+files = {'image': open('your_image.jpg, 'rb')}
+
+response = requests.post('http://localhost:8000/ocr', data=payload, files=files)
+```
