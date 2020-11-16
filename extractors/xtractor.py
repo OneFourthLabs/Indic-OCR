@@ -24,6 +24,22 @@ class Xtractor:
         with open(ocr_json_file, encoding='utf-8') as f:
             input = json.load(f)
         
+        if doc_type == 'raw':
+            return input
+        elif doc_type == 'pan':
+            # PAN has only Hindi text
+            lang = 'hi'
+
+        if not lang:
+            lang = 'en'
+        elif type(lang) == list:
+            additional_lang = lang[0]
+            i = 1
+            while i < len(lang) and additional_lang == 'en':
+                additional_lang = lang[i]
+                i += 1
+            lang = additional_lang
+        
         # TODO: Do not run OCR if QR is successful
         data = extract_from_qr(doc_type, input['data'])
         if data:

@@ -60,4 +60,6 @@ def remove_non_numerals(s):
 
 def standardize_numerals(s, lang):
     # Convert language numerals to Hindu-Arabic
+    if lang == 'en':
+        return s
     return s.translate(NUMERAL_MAP[lang])
