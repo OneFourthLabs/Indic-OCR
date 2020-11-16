@@ -55,9 +55,16 @@ class OCR:
         
         return
     
-    def process_img(self, img_path, preprocessor, output_folder):
+    def process_img(self, img_path, preprocessor, output_folder, skip_if_done=False):
+        
+        # Pre-process image
         if preprocessor:
             img_path = preprocessor.process(img_path, output_folder)
+        
+        # Check if already processed
+        out_file = os.path.join(output_folder, os.path.splitext(os.path.basename(img_path))[0])
+        if skip_if_done and os.path.isfile(out_file + '.json'):
+            return out_file
         
         # Read image
         # TODO: Currently, each model uses different types of loader. Unify them?
@@ -72,7 +79,6 @@ class OCR:
             bboxes.extend(qr_bboxes)
         
         # Save output
-        out_file = os.path.join(output_folder, os.path.splitext(os.path.basename(img_path))[0])
         if self.draw:
             img = self.extractor.draw_bboxes(img, bboxes, out_file+'.jpg')
         gt = {

@@ -87,7 +87,9 @@ class AutoDeskewer(PreProcessorBase):
         TODO: Ensure deskewing is avoided in that case?
         '''
         angle = AutoDeskewer.determine_skew(rgb2gray(img))
-        return rotate(img, angle, resize=True) * 255
+        if not angle:
+            return img
+        return np.array(rotate(img, angle, resize=True) * 255, dtype=np.uint8)
 
 import re
 import tempfile
@@ -142,8 +144,14 @@ class AutoRotate(PreProcessorBase):
         self.min_confidence = min_confidence
     
     def process(self, img):
-        output = image_to_osd(img, output_type='dict') #, lang='eng'
-        print(output)
+        try:
+            output = image_to_osd(img, output_type='dict', lang='eng')
+        except:
+            try:
+                output = image_to_osd(img, output_type='dict')
+            except:
+                return img
+        
         if 'orientation' in output and output['orientation'] != 0 and output['orientation_conf'] >= self.min_confidence:
             # angle = (360 - output['rotate']) % 360
             angle = output['orientation']
