@@ -30,7 +30,7 @@ def get_model(config_name, configs_path_pattern, langs=None):
     from indic_ocr.ocr import OCR
     return OCR(config, langs, qr_scan=True)
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def get_preprocessor(preprocessors=None):
     if not preprocessors:
         return None

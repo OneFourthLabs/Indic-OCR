@@ -1,5 +1,6 @@
 import os
 import cv2
+from PIL import Image
 import numpy as np
 from skimage import io
 from skimage.transform import rotate
@@ -18,6 +19,8 @@ class PreProcessor:
                 processor = BG_Remover()
             elif processor_name == 'doc_crop':
                 processor = DocAutoCropper()
+            elif processor_name == 'deep_rotate':
+                processor = DeepRotate()
             
             if processor:
                 self.processors.append(processor)
@@ -127,7 +130,6 @@ class AutoRotate2(PreProcessorBase):
     def process(self, img):
         angle = self.get_angle(img)
         # if angle:
-        print(angle)
         if angle == 90 or angle == 270:
             return rotate(img, angle, resize=True) * 255
         else:
@@ -159,4 +161,34 @@ class AutoRotate(PreProcessorBase):
             return rotate(img, angle, resize=True) * 255
         else:
             return img
-        return self.rotate(img)
+
+import torch
+import torchvision.transforms as transforms
+class DeepRotate(PreProcessorBase):
+    def __init__(self, model_path='models/DeepRotate/v6.tjm', device=None):
+        if os.path.isfile(model_path):
+            self.model = torch.jit.load(model_path)
+        else:
+            exit('Model not found: ' + model_path)
+        
+        self.device = device
+        if not device:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
+
+        self.ANGLES = [0, 90, 180, 270]
+        self.transform = transforms.Compose([
+            transforms.Resize((512, 512)),
+            transforms.Grayscale(),
+            transforms.ToTensor(),
+        ])
+        
+    def process(self, img):
+        input_tensor = self.transform(Image.fromarray(img)).unsqueeze(0).to(self.device)
+        output = self.model(input_tensor)
+        angle_idx = int(torch.argmax(output[0]))
+        if angle_idx:
+            return rotate(img, -self.ANGLES[angle_idx], resize=True) * 255
+        else:
+            return img
+        
