@@ -6,7 +6,8 @@ from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, sta
 from fastapi.responses import HTMLResponse
 
 from uuid import uuid4
-from datetime import datetime
+
+from utils.file import dump_uploaded_file
 
 ## --------------- Authentication --------------- ##
 
@@ -21,7 +22,6 @@ if PRODUCTION_MODE:
     # TODO: Use DB for authentication
     with open('credentials.json') as f:
         CREDENTIALS = json.load(f)
-
 else:
     security = None
 
@@ -30,8 +30,7 @@ def authenticate(credentials: HTTPBasicCredentials = security):
         return True
     
     if credentials.username in CREDENTIALS and secrets.compare_digest(credentials.password, CREDENTIALS[credentials.username]):
-        # Authenticated!
-        return True
+        return True # Authenticated!
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -75,27 +74,21 @@ def get_model(config_name, additional_langs=None):
     LOADED_MODELS[code_name] = model
     return model
 
-def perform_ocr(file: UploadFile, config_name: str, additional_langs=[]):
-    extension = os.path.splitext(file.filename)[1]
-    out_file = datetime.now().strftime("%Y-%m-%d__%H-%M-%S") + extension
-    img_path = os.path.join(OUTPUT_FOLDER, out_file)
-    with open(img_path, 'wb') as f:
-        f.write(file.file.read())
-    
+def perform_ocr(img_path: str, config_name: str, additional_langs=[]):
     ocr = get_model(config_name, additional_langs)
-    output_path = ocr.process_img(img_path, None, OUTPUT_FOLDER)
-    return output_path
+    return ocr.process_img(img_path, None, OUTPUT_FOLDER)
 
 ## --------------- Extractor Config --------------- ##
 
 from extractors.xtractor import Xtractor
 extractor = Xtractor()
 
-def perform_extraction(file: UploadFile, doc_name: str, parser_type: str,
+def perform_extraction(img_path: str, doc_name: str, parser_type: str,
         ocr_config_name: str, additional_langs=[]):
 
-    ocr_output_path = perform_ocr(file, ocr_config_name, additional_langs)
+    ocr_output_path = perform_ocr(img_path, ocr_config_name, additional_langs)
     return extractor.run(ocr_output_path+'.json', parser_type, doc_name, additional_langs)
+
 
 ## -------------- API ENDPOINTS -------------- ##
 
@@ -103,11 +96,12 @@ app = FastAPI()
 
 @app.post("/ocr")
 async def ocr(is_authenticated: bool = Depends(authenticate),
-    image: UploadFile = File(...),
-    config: OCR_ConfigName = Form(DEFAULT_CONFIG_NAME),
-    additional_langs: list = Form([])):
+        image: UploadFile = File(...),
+        config: OCR_ConfigName = Form(DEFAULT_CONFIG_NAME),
+        additional_langs: list = Form([])):
     
-    output_path = perform_ocr(image, config, additional_langs)
+    img_path = dump_uploaded_file(image.filename, image.file, OUTPUT_FOLDER)
+    output_path = perform_ocr(img_path, config, additional_langs)
     with open(output_path+'.json', 'r', encoding='utf-8') as f:
         return json.load(f)
 
@@ -125,13 +119,14 @@ async def ocr_test(is_authenticated: bool = Depends(authenticate)):
 
 @app.post("/extract")
 async def extract(is_authenticated: bool = Depends(authenticate),
-    image: UploadFile = File(...),
-    doc_name: str = Form('raw'),
-    parser_type: str = Form('rules'),
-    ocr_config: OCR_ConfigName = Form(DEFAULT_CONFIG_NAME),
-    additional_langs: list = Form([])):
+        image: UploadFile = File(...),
+        doc_name: str = Form('raw'),
+        parser_type: str = Form('rules'),
+        ocr_config: OCR_ConfigName = Form(DEFAULT_CONFIG_NAME),
+        additional_langs: list = Form([])):
 
-    return perform_extraction(image, doc_name.lower(), parser_type, ocr_config, additional_langs)
+    img_path = dump_uploaded_file(image.filename, image.file, OUTPUT_FOLDER)
+    return perform_extraction(img_path, doc_name.lower(), parser_type, ocr_config, additional_langs)
 
 @app.get("/extract_test")
 async def extract_test(is_authenticated: bool = Depends(authenticate)):

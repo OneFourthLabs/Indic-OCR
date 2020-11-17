@@ -1,8 +1,8 @@
 import streamlit as st
 import os
 
-from streamlit_utils.widgets import *
-from streamlit_utils.file import *
+from utils.streamlit.widgets import *
+from utils.file import *
 
 CONFIGS_PATH = 'configs/demo/*.json'
 
@@ -97,7 +97,7 @@ def setup_ocr_runner(img: io.BytesIO, settings):
     
     start_button.empty()
     latest_progress.text('Status: Processing image')
-    img_path = dump_jpeg(img, IMAGES_FOLDER)
+    img_path = dump_file_from_bytes(img, '.jpg', IMAGES_FOLDER)
     
     progress_bar.progress(0.2)
     latest_progress.text('Status: Running OCR')
