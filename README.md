@@ -72,5 +72,5 @@ Example - Testing the API using Python:
 payload = {'additional_langs': ['hi']}
 files = {'image': open('your_image.jpg, 'rb')}
 
-response = requests.post('http://localhost:8000/ocr', data=payload, files=files)
+response = requests.post('http://localhost:8000/ocr', data=payload, files=files) #auth=('admin', 'pass'))
 ```

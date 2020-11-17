@@ -2,11 +2,43 @@ import os
 import json
 from enum import Enum
 from typing import Optional
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Form, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
 
 from uuid import uuid4
 from datetime import datetime
+
+## --------------- Authentication --------------- ##
+
+PRODUCTION_MODE = True
+
+import secrets
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+
+if PRODUCTION_MODE:
+    security = Depends(HTTPBasic())
+
+    # TODO: Use DB for authentication
+    with open('credentials.json') as f:
+        CREDENTIALS = json.load(f)
+
+else:
+    security = None
+
+def authenticate(credentials: HTTPBasicCredentials = security):
+    if not PRODUCTION_MODE:
+        return True
+    
+    if credentials.username in CREDENTIALS and secrets.compare_digest(credentials.password, CREDENTIALS[credentials.username]):
+        # Authenticated!
+        return True
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect HTTPBasicAuth credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return False
 
 ## --------------- OCR Configuration --------------- ##
 
@@ -38,7 +70,7 @@ def get_model(config_name, additional_langs=None):
     
     print(f'Loading model {code_name}')
     config = CONFIGS_PATH.replace('*', config_name)
-    model = OCR(config, additional_langs, qr_scan=True)
+    model = OCR(config, additional_langs)
     
     LOADED_MODELS[code_name] = model
     return model
@@ -60,13 +92,14 @@ def perform_ocr(file: UploadFile, config_name: str, additional_langs=[]):
 app = FastAPI()
 
 @app.post("/ocr")
-async def ocr(image: UploadFile = File(...),
-    config: OCR_ConfigName = DEFAULT_CONFIG_NAME,
-    additional_langs: list = []):
+async def ocr(is_authenticated: bool = Depends(authenticate),
+    image: UploadFile = File(...),
+    config: OCR_ConfigName = Form(DEFAULT_CONFIG_NAME),
+    additional_langs: list = Form([])):
     return perform_ocr(image, config, additional_langs)
 
 @app.get("/ocr_test")
-async def main():
+async def ocr_test(is_authenticated: bool = Depends(authenticate)):
     content = """
 <body>
 <form action="/ocr" enctype="multipart/form-data" method="post">
