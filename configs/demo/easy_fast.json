@@ -1,7 +1,7 @@
 {
     "langs": [
         "en",
-        "ta"
+        "hi"
     ],
     "draw": true,
     "model_dir": "models/EasyOCR",

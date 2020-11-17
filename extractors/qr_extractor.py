@@ -69,7 +69,7 @@ def extract_aadhar(xml_string):
         }
     }
 
-DOC_MAP = {
+QR_DOC_MAP = {
     'pan': extract_pan,
     'pan_new': extract_pan,
     'aadhar': extract_aadhar,
@@ -77,7 +77,7 @@ DOC_MAP = {
 }
 
 def extract_from_qr(doc_type, bboxes):
-    if doc_type not in DOC_MAP:
+    if doc_type not in QR_DOC_MAP:
         return None
     
     qr_bboxes = [bbox for bbox in bboxes if bbox['type']=='qr']
@@ -85,4 +85,4 @@ def extract_from_qr(doc_type, bboxes):
         return None
     
     qr_message = qr_bboxes[0]['text']
-    return DOC_MAP[doc_type](qr_message)
+    return QR_DOC_MAP[doc_type](qr_message)

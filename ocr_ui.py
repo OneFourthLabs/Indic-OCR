@@ -8,7 +8,7 @@ CONFIGS_PATH = 'configs/demo/*.json'
 
 IMAGES_FOLDER = os.path.join('images', 'server')
 OUTPUT_FOLDER = os.path.join(IMAGES_FOLDER, 'output')
-ADDITIONAL_LANGS = ['hi', 'ta']
+ADDITIONAL_LANGS = ['hi']#, 'ta']
 
 @st.cache
 def get_extractor():
@@ -28,7 +28,7 @@ def get_configs(configs_path_pattern):
 def get_model(config_name, configs_path_pattern, langs=None):
     config = configs_path_pattern.replace('*', config_name)
     from indic_ocr.ocr import OCR
-    return OCR(config, langs, qr_scan=True)
+    return OCR(config, langs)
 
 @st.cache(allow_output_mutation=True)
 def get_preprocessor(preprocessors=None):
@@ -61,7 +61,7 @@ def setup_ocr_sidebar(configs_path_pattern):
     model_status.text('Model ready!')
     
     # Set image pre-processors
-    PREPROCESSORS_MAP = {'Auto-Deskew': 'deskew', 'Auto-Rotate': 'auto_rotate', 'Auto-Crop': 'doc_crop'}
+    PREPROCESSORS_MAP = {'Auto-Deskew': 'deskew', 'Auto-Rotate': 'deep_rotate', 'Auto-Crop': 'doc_crop'}
     AVAILABLE_PREPROCESSORS = list(PREPROCESSORS_MAP)
     preprocessors = st.sidebar.multiselect('Select image pre-processors:', AVAILABLE_PREPROCESSORS, AVAILABLE_PREPROCESSORS[0:2])
     
@@ -84,7 +84,7 @@ def setup_ocr_runner(img: io.BytesIO, settings):
 
     extract_type = st.selectbox('Select extractor type:', ['None', 'Standard'], index=1) #, 'LSTM (Experimental)'
     if extract_type != 'None':
-        doc_type = st.selectbox('Select document:', ['PAN Old', 'PAN New', 'Aadhar Front', 'Voter Front', 'Voter Back'], index=0)
+        doc_type = st.selectbox('Select document:', ['PAN']) # ['PAN Old', 'PAN New', 'Aadhar Front', 'Voter Front', 'Voter Back'], index=0)
         doc_type = doc_type.lower().replace(' ', '_')
     
     latest_progress = st.text('Status: Ready to process')
@@ -111,9 +111,11 @@ def setup_ocr_runner(img: io.BytesIO, settings):
         progress_bar.progress(0.8)
         
         lang = settings['extra_langs'][0] if settings['extra_langs'] else 'en'
-        data = get_extractor().run(output_path + '.json', extract_type, doc_type, lang)
-        if 'raw' in data:
-            del data['raw']
+        data = get_extractor().process_ocr_json(output_path + '.json', extract_type, doc_type, settings['extra_langs'])
+        # if 'raw' in data:
+        #     del data['raw']
+        if 'logs' in data:
+            del data['logs']
         st.json(data)
     
     latest_progress.text('Status: Extraction Complete!')

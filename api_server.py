@@ -80,14 +80,24 @@ def perform_ocr(img_path: str, config_name: str, additional_langs=[]):
 
 ## --------------- Extractor Config --------------- ##
 
+class DocumentName(str, Enum):
+    Raw = "raw"
+    PAN = "pan"
+
+DEFAULT_DOC_NAME = DocumentName.Raw
+
+from indic_ocr.utils.qr_extractor import QR_Extractor
 from extractors.xtractor import Xtractor
-extractor = Xtractor()
+extractor = Xtractor(qr_scanner=QR_Extractor())
+
+from indic_ocr.utils.img_preprocess import PreProcessor
+img_preprocessor = PreProcessor(['deep_rotate'])
 
 def perform_extraction(img_path: str, doc_name: str, parser_type: str,
         ocr_config_name: str, additional_langs=[]):
 
-    ocr_output_path = perform_ocr(img_path, ocr_config_name, additional_langs)
-    return extractor.run(ocr_output_path+'.json', parser_type, doc_name, additional_langs)
+    ocr = get_model(ocr_config_name, additional_langs)
+    return extractor.extract(img_path, parser_type, doc_name, additional_langs, ocr, img_preprocessor, OUTPUT_FOLDER)
 
 
 ## -------------- API ENDPOINTS -------------- ##
@@ -120,13 +130,17 @@ async def ocr_test(is_authenticated: bool = Depends(authenticate)):
 @app.post("/extract")
 async def extract(is_authenticated: bool = Depends(authenticate),
         image: UploadFile = File(...),
-        doc_name: str = Form('raw'),
+        doc_name: str = Form(DEFAULT_DOC_NAME),
         parser_type: str = Form('rules'),
         ocr_config: OCR_ConfigName = Form(DEFAULT_CONFIG_NAME),
         additional_langs: list = Form([])):
 
     img_path = dump_uploaded_file(image.filename, image.file, OUTPUT_FOLDER)
-    return perform_extraction(img_path, doc_name.lower(), parser_type, ocr_config, additional_langs)
+    data = perform_extraction(img_path, doc_name.lower(), parser_type, ocr_config, additional_langs)
+    if PRODUCTION_MODE:
+        if 'raw'  in data: del data['raw']
+        if 'logs' in data: del data['logs']
+    return data
 
 @app.get("/extract_test")
 async def extract_test(is_authenticated: bool = Depends(authenticate)):

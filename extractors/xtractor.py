@@ -2,7 +2,7 @@ import json
 
 from .lstm_extractor import LSTM_Extractor
 from .rule_based import extract
-from .qr_extractor import extract_from_qr
+from .qr_extractor import extract_from_qr, QR_DOC_MAP
 from .string_rules.str_utils import fix_date, standardize_numerals
 
 from .utils.transliterator import transliterate
@@ -15,40 +15,52 @@ BILINGUAL_KEYS_FOR_XLIT = {
 DATE_KEYS = ['dob', 'doi']
 
 class Xtractor:
-    def __init__(self, model_path=None):
+    def __init__(self, model_path=None, qr_scanner=None):
         if model_path:
             self.lstm_extractor = LSTM_Extractor(model_path)
+        self.qr_scanner = qr_scanner
     
-    def run(self, ocr_json_file, extract_type, doc_type, lang='en'):
+    def extract(self, img_path, extract_type, doc_type, indic_langs, ocr, img_preprocessor=None, output_folder='images/'):
+        if self.qr_scanner and doc_type in QR_DOC_MAP:
+            qr_bboxes = self.qr_scanner.extract(img_path)
+            if qr_bboxes: # If QR extraction is successful, don't run OCR
+                result = extract_from_qr(doc_name, qr_bboxes)
+                if result:
+                    result['logs'] = ['Extracted using QR code']
+                    return result
+        
+        ocr_output_path = ocr.process_img(img_path, img_preprocessor, output_folder)
+        return self.process_ocr_json(ocr_output_path+'.json', extract_type, doc_type, indic_langs)
+
+    def process_ocr_json(self, ocr_json_file, extract_type, doc_type, additional_langs=[]):
+        lang = 'en'
 
         with open(ocr_json_file, encoding='utf-8') as f:
-            input = json.load(f)
-        
+            ocr_json = json.load(f)
+
         if doc_type == 'raw':
-            return input
+            return ocr_json
         elif doc_type == 'pan':
             # PAN has only Hindi text
             lang = 'hi'
-
-        if not lang:
-            lang = 'en'
-        elif type(lang) == list:
-            additional_lang = lang[0]
-            i = 1
-            while i < len(lang) and additional_lang == 'en':
-                additional_lang = lang[i]
+        elif additional_langs:
+            # Set Indic langauge if any
+            i = 0
+            while i < len(additional_langs) and lang == 'en':
+                lang = additional_langs[i]
                 i += 1
-            lang = additional_lang
         
-        # TODO: Do not run OCR if QR is successful
-        data = extract_from_qr(doc_type, input['data'])
-        if data:
-            data['logs'] = ['Extracted using QR code']
-        else:
-            data = self.extract_from_ocr(input, extract_type, doc_type, lang)
-        
+        data = self.extract_from_ocr(ocr_json, extract_type, doc_type, lang)
         self.post_process(data, doc_type, lang)
         return data
+    
+    def extract_from_qr(self, doc_type, bboxes):
+        data = extract_from_qr(doc_type, bboxes)
+        if data:
+            data['logs'] = ['Extracted using QR code']
+            return data
+        else:
+            return None
     
     def extract_from_ocr(self, input, extract_type, doc_type, lang):
         bboxes = [bbox for bbox in input['data'] if bbox['type']=='text']
