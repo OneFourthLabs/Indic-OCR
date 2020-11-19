@@ -13,7 +13,7 @@ HEADER_WORDS = 'INCOME|TAX|DEPART|GOVT|INDIA'
 HINDI_HEADER_WORDS = 'आयकर|विभाग|भारत|सरकार'
 PAN_WORDS_EXACT = 'PERMANENT|ACCOUNT|NUMBER' # OCR is not always perfect, hence approx it by:
 PAN_WORDS = 'PERM|COUNT|NUMB'
-DOB_REGEX = r'(\d+[|/!)]\d+.?\d\d\d+)'
+DOB_REGEX = r'(\d{1,2}[|/!)]\d+.?\d\d\d+)'
 
 def parse_lossy_from_hindi_header(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
@@ -93,6 +93,13 @@ def parse_names(line_i, lines, n_lines, result):
     result['en']['name'] = remove_non_ascii(lines[line_i])
     line_i += 1
     
+    # Sometimes, parent name will not be mentioned on PAN
+    # So we directly encounter DOB. (Mostly for business PAN)
+    if line_i < n_lines and re.findall(DOB_REGEX, lines[line_i]):
+        result['logs'].append('Relation name missing. Probably business PAN?')
+        return line_i
+    
+    backtrack_line_i = line_i
     # Sometimes it also detects the 'Bharat Sarkar' watermark in the right
     # So try to skip that
     while line_i < n_lines and len(remove_non_letters(lines[line_i].replace(' ', ''))) < 3:
@@ -101,7 +108,7 @@ def parse_names(line_i, lines, n_lines, result):
     ## -- EXTRACT PARENT NAME -- #
     if line_i >= n_lines:
         result['logs'].append('Failed to find parent name')
-        return line_i-1
+        return backtrack_line_i
     
     result['en']['relation'] = remove_non_ascii(lines[line_i])
     line_i += 1
@@ -188,7 +195,7 @@ def parse_id(line_i, lines, n_lines, result):
         # Try regex
         line_i = backtrack_line_i
         exact_regex_pattern = r'[A-Z][A-Z][A-Z][A-Z][A-Z]\d\d\d\d[A-Z]' # Fails when bad OCR
-        regex_pattern = r'[A-Z][A-Z][A-Z][A-Z]\w\d\d\d\d\w?'
+        regex_pattern = r'[A-Z][A-Z][A-Z][A-Z]\w[\dO]{4}\w?'
         noisy_regex_pattern = r'\w{10}'
         matches = re.findall(regex_pattern, lines[line_i].replace(' ', ''))
         while not matches:

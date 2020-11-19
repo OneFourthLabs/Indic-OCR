@@ -3,7 +3,7 @@ import json
 from .lstm_extractor import LSTM_Extractor
 from .rule_based import extract
 from .qr_extractor import extract_from_qr, QR_DOC_MAP
-from .string_rules.str_utils import fix_date, standardize_numerals
+from .string_rules.str_utils import fix_date, standardize_numerals, remove_non_letters_except_space, remove_non_alphanumerics
 
 from .utils.transliterator import transliterate
 BILINGUAL_KEYS_FOR_XLIT = {
@@ -15,7 +15,8 @@ BILINGUAL_KEYS_FOR_XLIT = {
 DATE_KEYS = ['dob', 'doi']
 
 class Xtractor:
-    def __init__(self, model_path=None, qr_scanner=None):
+    def __init__(self, model_path=None, qr_scanner=None, debug_mode=True):
+        self.debug_mode = debug_mode
         if model_path:
             self.lstm_extractor = LSTM_Extractor(model_path)
         self.qr_scanner = qr_scanner
@@ -51,7 +52,7 @@ class Xtractor:
                 i += 1
         
         data = self.extract_from_ocr(ocr_json, extract_type, doc_type, lang)
-        self.post_process(data, doc_type, lang)
+        data = self.post_process(data, doc_type, lang)
         return data
     
     def extract_from_qr(self, doc_type, bboxes):
@@ -87,6 +88,25 @@ class Xtractor:
             self.fill_missing_using_xlit(data, doc_type, lang)
         # self.replace_numerals(data, lang)
         self.fix_dates(data)
+        
+        if self.debug_mode:
+            return data
+        
+        if doc_type == 'pan' and 'en' in data:
+            data = data['en']
+            result = {
+                'date': data['dob'].replace(' ', '') if 'dob' in data else None,
+                'father_name': remove_non_letters_except_space(data['relation'].strip().upper()) if 'relation' in data else None,
+                'name': remove_non_letters_except_space(data['name'].strip().upper()) if 'name' in data else None,
+                'pan_id': remove_non_alphanumerics(data['id'].upper())[:10] if 'id' in data else None
+            }
+            return result
+        
+        if 'raw'  in data: del data['raw']
+        if 'logs' in data: del data['logs']
+        
+        return data
+        
 
     def fix_dates(self, data):
         # Sometimes, OCR confuses English numerals with Indic numerals

@@ -70,6 +70,8 @@ def get_model(config_name, additional_langs=None):
     print(f'Loading model {code_name}')
     config = CONFIGS_PATH.replace('*', config_name)
     model = OCR(config, additional_langs)
+    if config_name != 'google_ocr':
+        model.draw = False
     
     LOADED_MODELS[code_name] = model
     return model
@@ -88,7 +90,7 @@ DEFAULT_DOC_NAME = DocumentName.Raw
 
 from indic_ocr.utils.qr_extractor import QR_Extractor
 from extractors.xtractor import Xtractor
-extractor = Xtractor(qr_scanner=QR_Extractor())
+extractor = Xtractor(qr_scanner=QR_Extractor(), debug_mode=not PRODUCTION_MODE)
 
 from indic_ocr.utils.img_preprocess import PreProcessor
 img_preprocessor = PreProcessor(['deep_rotate'])
@@ -137,9 +139,6 @@ async def extract(is_authenticated: bool = Depends(authenticate),
 
     img_path = dump_uploaded_file(image.filename, image.file, OUTPUT_FOLDER)
     data = perform_extraction(img_path, doc_name.lower(), parser_type, ocr_config, additional_langs)
-    if PRODUCTION_MODE:
-        if 'raw'  in data: del data['raw']
-        if 'logs' in data: del data['logs']
     return data
 
 @app.get("/extract_test")

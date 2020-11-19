@@ -47,11 +47,13 @@ def fix_date(date_str):
                 date_str = date_str[:5] + '/' + date_str[-4:]
             else:
                 # Assume first 8 digits as DoB and proceed
-                date_str = raw_digits[:2] + '/' + raw_digits[2:4] + '/'
                 if len(raw_digits) == 9:
-                    date_str += raw_digits[-4:]
+                    date_str = raw_digits[:2] + '/' + raw_digits[2:4] + '/' + raw_digits[-4:]
+                elif 9 < len(raw_digits) < 12:
+                    date_str = raw_digits[:2] + '/' + raw_digits[2:4] + '/' + raw_digits[4:8]
                 else:
-                    date_str += raw_digits[4:8]
+                    date_str = ''
+    
     return remove_non_ascii(date_str.replace(' ', ''))
 
 def remove_non_numerals(s):

@@ -10,15 +10,15 @@ https://ibb.co/TbYWSnD
 '''
 
 import re
-from .str_utils import remove_non_ascii, remove_non_letters, remove_non_numerals
+from .str_utils import remove_non_ascii, remove_non_letters, remove_non_numerals, remove_non_alphanumerics
 
-RELATION_KEYS = 'father|mother|husband|पिता|माता|पति'
+RELATION_KEYS = '[fpr]ath[eo]r|mother|husband|पिता|माता|पति'
 GOV_HEADER_KEYS = 'income|tax|department|govt|india'
 NAME_KEYS = 'name|नाम'
 PAN_KEYS = 'permanent|account|number|card'
 PAN_HINDI_KEYS = 'स्थायी|लेखा|संख्या|कार्ड'
 DOB_KEYS = 'date|birth|जन्म|तारीख'
-DOB_REGEX = r'(\d+[|!/-]\d+.?\d\d\d+)'
+DOB_REGEX = r'(\d{1,2}[|!/-]\d+.?\d\d\d+)'
 
 def parse_id(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
@@ -30,6 +30,9 @@ def parse_id(line_i, lines, n_lines, result):
     if line_i < n_lines:
         # Hoping the ID will be in the next line
         line_i += 1
+        if line_i >= n_lines:
+            result['logs'].append('Unable to find ID after PAN key')
+            return backtrack_line_i
     else:
         result['logs'].append('Unable to find PAN header')
 
@@ -61,6 +64,10 @@ def parse_id(line_i, lines, n_lines, result):
             result['logs'].append('WARN: ID MAYbe wrong')
     
     result['en']['id'] = lines[line_i].replace(' ', '')
+    if len(remove_non_alphanumerics(result['en']['id'])) < 5 and line_i+1 < n_lines:
+        # Sometimes the 'Bharat Sarkar' watermark gets detected. Skip that if any
+        result['en']['id'] = lines[line_i+1].replace(' ', '')
+        
     backtrack_line_i = line_i
 
     # Parse out the ID pattern
@@ -114,6 +121,9 @@ def parse_name(line_i, lines, n_lines, result):
     return line_i+1
 
 def parse_relation_name(line_i, lines, n_lines, result):
+    if line_i >= n_lines:
+        result['logs'].append('Error in processing relation name')
+        return line_i
     backtrack_line_i = line_i
 
     while line_i < n_lines \
@@ -137,6 +147,9 @@ def parse_relation_name(line_i, lines, n_lines, result):
     return line_i
 
 def parse_dob(line_i, lines, n_lines, result):
+    if line_i >= n_lines:
+        result['logs'].append('Error in processing DoB')
+        return line_i
     backtrack_line_i = line_i
     # Search for "जन्म की तारीख / Date of Birth"
     while line_i < n_lines and not re.findall(DOB_KEYS, lines[line_i].lower()):

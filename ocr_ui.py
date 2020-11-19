@@ -13,8 +13,8 @@ ADDITIONAL_LANGS = ['hi']#, 'ta']
 @st.cache
 def get_extractor():
     from extractors.xtractor import Xtractor
-    MODELS_PATH = 'models/extraction'
-    return Xtractor(MODELS_PATH)
+    # MODELS_PATH = 'models/extraction'
+    return Xtractor(debug_mode=False)
 
 @st.cache
 def get_configs(configs_path_pattern):
@@ -112,10 +112,6 @@ def setup_ocr_runner(img: io.BytesIO, settings):
         
         lang = settings['extra_langs'][0] if settings['extra_langs'] else 'en'
         data = get_extractor().process_ocr_json(output_path + '.json', extract_type, doc_type, settings['extra_langs'])
-        # if 'raw' in data:
-        #     del data['raw']
-        if 'logs' in data:
-            del data['logs']
         st.json(data)
     
     latest_progress.text('Status: Extraction Complete!')
