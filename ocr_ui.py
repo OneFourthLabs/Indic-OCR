@@ -46,7 +46,7 @@ def setup_ocr_sidebar(configs_path_pattern):
     settings['extra_langs'] = st.sidebar.multiselect('Select your Indian language:', ADDITIONAL_LANGS, ADDITIONAL_LANGS[0:1])
     
     st.sidebar.subheader('Config')
-    default_config_index = 1
+    default_config_index = 2
     configs = get_configs(configs_path_pattern)
     config = st.sidebar.selectbox('', configs, index=default_config_index)
 

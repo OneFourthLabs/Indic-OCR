@@ -34,6 +34,10 @@ def remove_non_alphanumerics(s):
 
 def fix_date(date_str):
     date_str = date_str.replace('|', '/').replace('!', '/')
+    if re.findall(r'(\d\d1\d\d/\d\d\d\d)', date_str):
+        # Example: Convert 17102/1977 to 17/02/1977
+        date_str = re.findall(r'(\d\d1\d\d/\d\d\d\d)', date_str)[0]
+        return date_str[:2] + '/' + date_str[3:]
     if not re.findall(r'(\d\d/\d\d/\d\d\d\d)', date_str):
         # If 8 or more digits are there, probably fix it
         raw_digits = remove_non_numerals(date_str)

@@ -137,7 +137,7 @@ async def extract(is_authenticated: bool = Depends(authenticate),
         ocr_config: OCR_ConfigName = Form(DEFAULT_CONFIG_NAME),
         additional_langs: list = Form([])):
 
-    img_path = dump_uploaded_file(image.filename, image.file, OUTPUT_FOLDER)
+    img_path = dump_uploaded_file(image.filename, image.file, IMAGES_FOLDER)
     data = perform_extraction(img_path, doc_name.lower(), parser_type, ocr_config, additional_langs)
     return data
 

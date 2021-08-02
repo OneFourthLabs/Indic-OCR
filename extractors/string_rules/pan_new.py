@@ -18,7 +18,7 @@ NAME_KEYS = 'name|नाम'
 PAN_KEYS = 'permanent|account|number|card'
 PAN_HINDI_KEYS = 'स्थायी|लेखा|संख्या|कार्ड'
 DOB_KEYS = 'date|birth|जन्म|तारीख'
-DOB_REGEX = r'(\d{1,2}[|!/-]\d+.?\d\d\d+)'
+DOB_REGEX = r'(\d{1,2}[|1!/-]\d+.?\d\d\d+)'
 
 def parse_id(line_i, lines, n_lines, result):
     backtrack_line_i = line_i

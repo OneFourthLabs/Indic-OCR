@@ -1,7 +1,7 @@
 import sys, os
 from indic_ocr.ocr import OCR
 
-def run(config_json, input_path, output_folder=None, preprocessors=['deskew']):
+def run(config_json, input_path, output_folder=None, preprocessors=[]):
     ocr = OCR(config_json)
     
     preprocessor = None

@@ -13,7 +13,7 @@ HEADER_WORDS = 'INCOME|TAX|DEPART|GOVT|INDIA'
 HINDI_HEADER_WORDS = 'आयकर|विभाग|भारत|सरकार'
 PAN_WORDS_EXACT = 'PERMANENT|ACCOUNT|NUMBER' # OCR is not always perfect, hence approx it by:
 PAN_WORDS = 'PERM|COUNT|NUMB'
-DOB_REGEX = r'(\d{1,2}[|/!)]\d+.?\d\d\d+)'
+DOB_REGEX = r'(\d{1,2}[|1/!)]\d+.?\d\d\d+)'
 
 def parse_lossy_from_hindi_header(line_i, lines, n_lines, result):
     backtrack_line_i = line_i
